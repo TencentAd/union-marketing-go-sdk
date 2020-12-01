@@ -1,0 +1,80 @@
+#include "proto_gdt_register.jce"
+//这里放server内部协议
+module proto_gdt_register
+{
+    struct RTAInfoCache
+	{
+		0 optional unsigned int uUserType;
+		1 optional unsigned int uUserTypeUpdateTime;
+		2 optional unsigned int uLastClickTime;
+        3 optional map<unsigned int, unsigned int> mapUpdateTime;  //key=策略id，value=更新时间戳
+	};
+
+    struct StrategyGroup
+    {
+        0 optional unsigned int uStrategyGroupId;           //策略组ID
+        1 optional vector<unsigned int> vctSence;           //使用场景 1拉活 2拉新 3拉沉
+        2 optional vector<unsigned int> vctCompanyId;       //使用渠道 (已废弃)
+        3 optional vector<unsigned int> vctStrategy;        //使用策略ID,不同策略间使用“与”的关系
+        4 optional bool bValid;                             //是否生效
+    };
+
+	struct RTAReq
+	{
+		0 optional string strDeviceId;								// md5加密后的idfa/imei
+		1 optional unsigned int uPlatformType;						// 平台类型：1-安卓，2-ios，3-未知
+		2 optional unsigned int uCompanyId;							// 渠道号，详见 AD_COMPANY_TYPE
+        3 optional vector<unsigned int> vctStrategyGroupId;         // 策略组id
+        4 optional string strReqId;                                 // 透传渠道侧reqid，上报使用
+        5 optional unsigned int uDeviceType;                        // 设备类型，详见 emDEVICE_TYPE
+	};
+
+	struct RTARsp
+	{
+		0 optional unsigned int uStatus;							// 是否竞价:0-不竞价，1-竞价，当所有策略组有一个竞价时，就返回竞价【最好不用】
+        1 optional map<unsigned int, bool> mapGroupId2Res;          // 策略组id-是否竞价，每个策略组是否竞价
+	};
+
+    // 数据上报用
+    struct DataReportRta
+    {
+        0 optional unsigned int uStrategyGroupId;                   // 策略组id
+        1 optional unsigned int uStrategyId;                        // 不竞价时有效，指明具体哪条策略导致的不竞价
+        2 optional unsigned int uStatus;                            // 是否竞价:0-不竞价，1-竞价
+    };
+    // ====================== 写入策略对应的号码包信息 SUB_CMD_SET_STRATEGY_INFO =================
+    struct SetStrategyInfoReq
+    {
+        0 optional unsigned int uStrategyId;    // 策略id
+        1 optional string strImei;              // 加密之后的imei
+        2 optional string strIdfa;              // 加密之后的idfa
+        3 optional unsigned int uTimestamp;     // 增量输出的数据需要用（目前只有107策略需要）
+    };
+
+    struct SetStrategyInfoRsp
+    {
+        0 optional int status;
+    };
+
+    // ====================== 写入渠道点击信息 SUB_CMD_SET_CLICK_INFO ============================
+    struct SetClickInfoReq
+    {
+        0 optional ClickMsg stClickMsg;
+    };
+
+    struct SetClickInfoRsp
+    {
+        0 optional int iResult;
+    };
+
+    // ====================== 写入严格DAU登陆流水信息 SUB_CMD_SET_LOGIN_INFO =====================
+    struct SetDauLoginReq
+    {
+        0 optional DauLoginMsg stDauLoginMsg;
+    };
+
+    struct SetDauLoginRsp
+    {
+        0 optional int iResult;
+    };
+};

@@ -42,6 +42,7 @@ module proto_gdt_register
         1 optional unsigned int uStrategyId;                        // 不竞价时有效，指明具体哪条策略导致的不竞价
         2 optional unsigned int uStatus;                            // 是否竞价:0-不竞价，1-竞价
     };
+
     // ====================== 写入策略对应的号码包信息 SUB_CMD_SET_STRATEGY_INFO =================
     struct SetStrategyInfoReq
     {

@@ -1,4 +1,4 @@
-package api
+package io
 
 import (
 	"github.com/antihax/optional"
@@ -6,7 +6,7 @@ import (
 )
 
 // 广告报表请求的参数信息
-type ReportInputParam struct {
+type GetReportInput struct {
 	BaseConfig
 	ReportAdLevel         ReportAdLevel         `json:"level,omitempty"`            // 报表类型级别
 	ReportTimeGranularity ReportTimeGranularity `json:"time_granularity,omitempty"` // 时间粒度
@@ -89,7 +89,7 @@ const (
 )
 
 // 报表回包
-type ReportOutput struct {
+type GetReportOutput struct {
 	// Tencent response
 	TencentReportResponse *model.DailyReportsGetResponseData
 	// Tencent hour response  TODO 需要跟天级别的数据合并

@@ -6,18 +6,25 @@ import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/marketingsdk/tencent"
 )
 
-type MarketingSDK struct {
+type Manager struct {
 	// config
 
 	TencentSDKService *tencent.TencentMarketingService
 	OceanEngineSDKService *oceanengine.OceanEngineReport
 	//Map[string, service]
+
+	Implementation map[string]api.MarketingSDK
 }
 
-func (msc *MarketingSDK) GetReport(reqParam *api.ReportInputParam) (*api.ReportOutput, error) {
-	// accountId, accountType, AccessToken
-	// tencent getReport
 
-	// oceanengine getReport
-	return nil, nil
+func (m *Manager) Call(method string, platform string, input string) (string, error) {
+	return "", nil
 }
+
+//func (msc *Manager) GetReport(reqParam *api.ReportInputParam) (*api.ReportOutput, error) {
+//	// accountId, accountType, AccessToken
+//	// tencent getReport
+//
+//	// oceanengine getReport
+//	return nil, nil
+//}

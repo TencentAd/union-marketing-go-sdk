@@ -1,4 +1,4 @@
-package io
+package sdk
 
 import (
 	"github.com/antihax/optional"

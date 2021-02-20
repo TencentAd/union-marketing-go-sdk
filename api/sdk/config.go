@@ -1,4 +1,4 @@
-package config
+package sdk
 
 import "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ams"
 

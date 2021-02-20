@@ -1,6 +1,4 @@
-package api
-
-import "git.code.oa.com/tme-server-component/kg_growth_open/api/io"
+package sdk
 
 type MarketingSDK interface {
 	Auth // fa
@@ -38,5 +36,5 @@ type Account interface {
 }
 
 type Report interface {
-	GetReport(reqParam *io.GetReportInput) (*io.GetReportOutput, error);
+	GetReport(reqParam *GetReportInput) (*GetReportOutput, error)
 }

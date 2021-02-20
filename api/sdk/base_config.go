@@ -1,4 +1,4 @@
-package api
+package sdk
 
 type BaseConfig struct {
 	AccountId   int64 `json:"account_id"`

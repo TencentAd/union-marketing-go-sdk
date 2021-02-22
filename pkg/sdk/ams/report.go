@@ -16,9 +16,18 @@ type AMSReportService struct {
 	config *sdkconfig.Config
 }
 
-func NewAMSReportService (sConfig *sdkconfig.Config) *AMSReportService {
+func NewAMSReportService(sConfig *sdkconfig.Config) *AMSReportService {
 	return &AMSReportService{
 		config: sConfig,
+	}
+}
+
+// 获取报表接口
+func (t *AMSReportService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.ReportTimeGranularity == sdk.ReportTimeDaily {
+		return t.getDailyReport(reportInput)
+	} else {
+		return t.getHourlyReport(reportInput)
 	}
 }
 
@@ -80,9 +89,7 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 	}
 }
 
-/**
-获取天级别的广告数据
-*/
+// getDailyReport 获取天级别的广告数据
 func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	tClient := t.getAMSReportClient(reportInput)
 	var level string
@@ -155,9 +162,7 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 	return &response, err
 }
 
-/**
-获取小时级别的广告数据
-*/
+// getHourlyReport 获取小时级别的广告数据
 func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	tClient := t.getAMSReportClient(reportInput)
 	var level string

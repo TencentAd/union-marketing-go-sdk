@@ -1,4 +1,4 @@
-package ams
+package config
 
 type Config struct {
 

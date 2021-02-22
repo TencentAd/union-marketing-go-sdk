@@ -36,5 +36,5 @@ type Account interface {
 }
 
 type Report interface {
-	GetReport(reqParam *GetReportInput) (*GetReportOutput, error)
+	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

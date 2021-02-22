@@ -3,17 +3,14 @@ package oceanengine
 import (
 	"context"
 	"git.code.oa.com/tme-server-component/kg_growth_open/api"
-	uuid "github.com/satori/go.uuid"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/config"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 type OceanEngineMarketingService struct {
 	SdkConfig     *api.MarketingSDKConfig // sdk配置
-	oceanEngineClient *APIClient // API请求Client
-	reportService *OceanEngineReport   // 报表模块
+	oceanEngineClient *APIClient          // API请求Client
+	reportService *OceanEngineReport      // 报表模块
 }
 
 // Name 名称

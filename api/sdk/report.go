@@ -7,7 +7,7 @@ import (
 
 // 广告报表请求的参数信息
 type GetReportInput struct {
-	BaseConfig
+	BaseReportInput		  BaseReportInput       `json:"base_report_input,omitempty"` // 账户信息
 	ReportAdLevel         ReportAdLevel         `json:"level,omitempty"`            // 报表类型级别
 	ReportTimeGranularity ReportTimeGranularity `json:"time_granularity,omitempty"` // 时间粒度
 	ReportDateRange       ReportDateRange       `json:"data_range,omitempty"`       // 日期范围
@@ -18,6 +18,20 @@ type GetReportInput struct {
 	PageSize              optional.Int64        `json:"page_size,omitempty"`        // 一页显示的数据条数，默认值：10 最小值 1，最大值 1000
 	Fields                []string              `json:"fields,omitempty"`           // 指定返回字段
 }
+
+type BaseReportInput struct {
+	AccountId   int64 `json:"account_id"`
+	AccountType AccountType `json:"account_type"`
+	AccessToken string	`json:"account_token"`
+}
+
+type AccountType int
+const (
+	AccountTypeInvalid       = 0
+	AccountTypeTencent       = 1 // 腾讯账户
+	AccountTypeTencentWechat = 2 // 腾讯微信账户
+	AccountTypeMax           = 3
+)
 
 // 报表的类型级别
 type ReportAdLevel string
@@ -86,6 +100,53 @@ type Sortord string
 const (
 	ASCENDING_TENCENT  Sortord = "ASCENDING"
 	DESCENDING_TENCENT Sortord = "DESCENDING"
+)
+
+// 投放版位
+type InventoryTypes string
+
+// https://ad.oceanengine.com/openapi/doc/index.html?id=528 后面补充头条和ams的版位
+const (
+	INVENTORY_FEED InventoryTypes = "INVENTORY_FEED" // 头条信息流（广告投放）
+	// TODO 后续补充全部
+)
+
+// 出价类型
+type PricingTypes string
+
+const (
+	PRICING_CPC PricingTypes = "cpc" // CPC出价
+	// TODO 后续补充全部
+)
+
+// 素材类型
+type ImageModes string
+
+const (
+	CREATIVE_IMAGE_MODE_SMALL ImageModes = "small_image"
+	// TODO
+)
+
+// 创意类型过滤
+type CreativeMaterialModes string
+
+const (
+	OCEAN_STATIC_ASSEMBLE CreativeMaterialModes = "STATIC_ASSEMBLE" // 程序化创意
+	OCEAN_INTERVENE       CreativeMaterialModes = "INTERVENE"       // 自定义创意
+)
+
+// 推广目标
+type LandingTypes string
+
+const (
+	LINK LandingTypes = "link_ocean" // 销售线索收集
+)
+
+// 状态，包括计划，组，创意状态
+type FilterStatus string
+
+const (
+	OCEAN_CREATIVE_STATUS_DELIVERY_OK FilterStatus = "creative_status_ok" // 创意投放中
 )
 
 // 报表回包

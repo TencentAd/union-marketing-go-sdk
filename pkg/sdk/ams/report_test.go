@@ -13,7 +13,7 @@ import (
 // 测试天级别数据
 func TestGetDailyReport(t *testing.T) {
 	reqInput := sdk.GetReportInput{
-		BaseReportInput: sdk.BaseReportInput{
+		BaseInput: sdk.BaseInput{
 			AccountId:   25610,
 			AccountType: sdk.AccountTypeTencent,
 			AccessToken: "4b647781310e83b001408e3ce092e48e",

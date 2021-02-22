@@ -7,7 +7,7 @@ import (
 
 // 广告报表请求的参数信息
 type GetReportInput struct {
-	BaseReportInput		  BaseReportInput       `json:"base_report_input,omitempty"` // 账户信息
+	BaseInput             BaseInput             `json:"base_input,omitempty"`       // 账户信息
 	ReportAdLevel         ReportAdLevel         `json:"level,omitempty"`            // 报表类型级别
 	ReportTimeGranularity ReportTimeGranularity `json:"time_granularity,omitempty"` // 时间粒度
 	ReportDateRange       ReportDateRange       `json:"data_range,omitempty"`       // 日期范围
@@ -19,13 +19,8 @@ type GetReportInput struct {
 	Fields                []string              `json:"fields,omitempty"`           // 指定返回字段
 }
 
-type BaseReportInput struct {
-	AccountId   int64 `json:"account_id"`
-	AccountType AccountType `json:"account_type"`
-	AccessToken string	`json:"account_token"`
-}
-
 type AccountType int
+
 const (
 	AccountTypeInvalid       = 0
 	AccountTypeTencent       = 1 // 腾讯账户

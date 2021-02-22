@@ -25,7 +25,7 @@ func NewAMSReportService (sConfig *sdkconfig.Config) *AMSReportService {
 // TencentReport constructor
 func (t *AMSReportService) getAMSReportClient(reportInput *sdk.GetReportInput) *ads.SDKClient {
 	tSdkConfig := tconfig.SDKConfig{
-		AccessToken: reportInput.BaseReportInput.AccessToken,
+		AccessToken: reportInput.BaseInput.AccessToken,
 	}
 	tClient := ads.Init(&tSdkConfig)
 	tClient.UseProduction()
@@ -36,10 +36,10 @@ const TFilterMax = 5
 
 func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adLevel *string) (bool, error) {
 
-	if reportInput.BaseReportInput.AccountType <= sdk.AccountTypeInvalid || reportInput.BaseReportInput.AccountType >= sdk.AccountTypeMax {
-		return false, fmt.Errorf("getReportAdLevel invalid account type = %d, id = %d", reportInput.BaseReportInput.AccountType, reportInput.BaseReportInput.AccountId)
+	if reportInput.BaseInput.AccountType <= sdk.AccountTypeInvalid || reportInput.BaseInput.AccountType >= sdk.AccountTypeMax {
+		return false, fmt.Errorf("getReportAdLevel invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
 	}
-	if reportInput.BaseReportInput.AccountType == sdk.AccountTypeTencent {
+	if reportInput.BaseInput.AccountType == sdk.AccountTypeTencent {
 		switch reportInput.ReportAdLevel {
 		case sdk.LevelAccount:
 			*adLevel = "REPORT_LEVEL_ADVERTISER"
@@ -147,7 +147,7 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 	dailyReportsGetOpts.Fields = optional.NewInterface(reportInput.Fields)
 
 	// 获取天级别广告数据
-	result, _, err := tClient.DailyReports().Get(*tClient.Ctx, reportInput.BaseReportInput.AccountId, level, dateRange, &dailyReportsGetOpts)
+	result, _, err := tClient.DailyReports().Get(*tClient.Ctx, reportInput.BaseInput.AccountId, level, dateRange, &dailyReportsGetOpts)
 	response := sdk.GetReportOutput{
 		TencentReportResponse: &result,
 	}
@@ -222,7 +222,7 @@ func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sd
 	hourlyReportsGetOpts.Fields = optional.NewInterface(reportInput.Fields)
 
 	// 获取天级别广告数据
-	result, _, err := tClient.HourlyReports().Get(*tClient.Ctx, reportInput.BaseReportInput.AccountId, level, dateRange, &hourlyReportsGetOpts)
+	result, _, err := tClient.HourlyReports().Get(*tClient.Ctx, reportInput.BaseInput.AccountId, level, dateRange, &hourlyReportsGetOpts)
 	response := sdk.GetReportOutput{
 		TencentHourlyReportResponse: &result,
 	}

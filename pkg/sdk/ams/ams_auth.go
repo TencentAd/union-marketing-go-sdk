@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/define"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
 	log "github.com/sirupsen/logrus"
@@ -31,6 +33,8 @@ func NewAuthService(config *config.Config) *AuthService {
 	if err := s.Init(); err != nil {
 		log.Errorf("failed to init AuthService, err: %v", err)
 	}
+
+	go s.refresh()
 
 	return s
 }
@@ -59,7 +63,7 @@ func (s *AuthService) ServeAuth(w http.ResponseWriter, req *http.Request) {
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
 		&api.OauthTokenOpts{
 			AuthorizationCode: optional.NewString(authorizationCode),
-			RedirectUri: optional.NewString("http://dev.ug.com/ams"),
+			RedirectUri:       optional.NewString(authConf.RedirectUri),
 		})
 	if err != nil {
 		serveErrorResponse(w, err)
@@ -70,28 +74,35 @@ func (s *AuthService) ServeAuth(w http.ResponseWriter, req *http.Request) {
 		serveErrorResponse(w, fmt.Errorf("no authorizer info returned"))
 		return
 	}
-	info := amsResp.AuthorizerInfo
 
 	// convert response
+	info := amsResp.AuthorizerInfo
+	authAccount := &sdk.AuthAccount{
+		AccountUin:           info.AccountUin,
+		AccountId:            info.AccountId,
+		ScopeList:            *info.ScopeList,
+		WechatAccountId:      info.WechatAccountId,
+		AccountRoleType:      AccountRoleTypeMapping[info.AccountRoleType],
+		AccountType:          AccountTypeMapping[info.AccountType],
+		RoleType:             RoleTypeMapping[info.RoleType],
+		AccessToken:          amsResp.AccessToken,
+		RefreshToken:         amsResp.RefreshToken,
+		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
+		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
+	}
+
 	resp := &sdk.AuthResponse{
 		Code:    0,
 		Message: define.Success,
-		Data: &sdk.AuthAccountOutput{
-			AccountUin:            info.AccountUin,
-			AccountId:             info.AccountId,
-			ScopeList:             info.ScopeList,
-			WechatAccountId:       info.WechatAccountId,
-			AccountRoleType:       AccountRoleTypeMapping[info.AccountRoleType],
-			AccountType:           AccountTypeMapping[info.AccountType],
-			RoleType:              RoleTypeMapping[info.RoleType],
-			AccessToken:           amsResp.AccessToken,
-			RefreshToken:          amsResp.RefreshToken,
-			AccessTokenExpiresIn:  amsResp.AccessTokenExpiresIn,
-			RefreshTokenExpiresIn: amsResp.RefreshTokenExpiresIn,
-		},
+		Data:    authAccount,
 	}
 
 	serverResponse(w, resp)
+}
+
+// calcExpireAt 计算失效时间
+func calcExpireAt(expireIn int64) time.Time {
+	return time.Now().Add(time.Second * time.Duration(expireIn))
 }
 
 func serveErrorResponse(w http.ResponseWriter, err error) {
@@ -108,4 +119,33 @@ func serverResponse(w http.ResponseWriter, resp *sdk.AuthResponse) {
 	_, _ = w.Write(data)
 }
 
+func (s *AuthService) refresh() {
+	authConfig := s.config.Auth
+	for {
+		time.Sleep(10 * time.Second)
+		now := time.Now()
+		authAccount := account.ManagerSingleton.GetAllAuthAccount()
 
+		for _, a := range authAccount {
+			if a.RefreshTokenExpireAt.Sub(now) <= time.Hour || a.AccessTokenExpireAt.Sub(now) <= time.Hour {
+				amsResp, _, err := s.amsSDKClient.Oauth().Token(
+					context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
+					&api.OauthTokenOpts{
+						RefreshToken: optional.NewString(a.RefreshToken),
+					})
+				if err != nil {
+					log.Errorf("failed to call refresh token api for account[%d]", a.AccountId)
+				} else {
+					if err = account.ManagerSingleton.RefreshToken(&sdk.AuthAccount{
+						RefreshToken:         amsResp.RefreshToken,
+						AccessToken:          amsResp.AccessToken,
+						RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
+						AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
+					}); err != nil {
+						log.Errorf("failed to refresh account[%d] token", a.AccountId)
+					}
+				}
+			}
+		}
+	}
+}

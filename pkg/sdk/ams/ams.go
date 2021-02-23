@@ -5,7 +5,8 @@ import (
 )
 
 type AMService struct {
-	config            *sdkconfig.Config
+	config         *sdkconfig.Config
+
 	*AMSReportService // 报表模块
 	*AuthService
 }

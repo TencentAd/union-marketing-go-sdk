@@ -7,4 +7,5 @@ type Config struct {
 type Auth struct {
 	ClientID     int64  `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+	RedirectUri  string `json:"redirect_uri"`
 }

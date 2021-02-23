@@ -10,6 +10,7 @@ import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/define"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
+	log "github.com/sirupsen/logrus"
 	amsAds "github.com/tencentad/marketing-api-go-sdk/pkg/ads"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/api"
 	amsConfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
@@ -21,8 +22,20 @@ type AuthService struct {
 	amsSDKClient *amsAds.SDKClient
 }
 
-func (s *AuthService) Init(config *config.Config) error {
-	s.config = config
+// NewAuthService
+func NewAuthService(config *config.Config) *AuthService {
+	s := &AuthService{
+		config: config,
+	}
+
+	if err := s.Init(); err != nil {
+		log.Errorf("failed to init AuthService, err: %v", err)
+	}
+
+	return s
+}
+
+func (s *AuthService) Init() error {
 	s.amsSDKClient = amsAds.Init(&amsConfig.SDKConfig{})
 	return nil
 }
@@ -46,6 +59,7 @@ func (s *AuthService) ServeAuth(w http.ResponseWriter, req *http.Request) {
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
 		&api.OauthTokenOpts{
 			AuthorizationCode: optional.NewString(authorizationCode),
+			RedirectUri: optional.NewString("http://dev.ug.com/ams"),
 		})
 	if err != nil {
 		serveErrorResponse(w, err)

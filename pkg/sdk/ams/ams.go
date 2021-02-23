@@ -19,5 +19,6 @@ func NewAMSService(sconfig *sdkconfig.Config) *AMService {
 	return &AMService{
 		config:           sconfig,
 		AMSReportService: NewAMSReportService(sconfig),
+		AuthService:      NewAuthService(sconfig),
 	}
 }

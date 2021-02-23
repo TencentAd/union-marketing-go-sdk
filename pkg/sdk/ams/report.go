@@ -2,6 +2,8 @@ package ams
 
 import (
 	"fmt"
+	"strings"
+
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
@@ -9,16 +11,24 @@ import (
 	tapi "github.com/tencentad/marketing-api-go-sdk/pkg/api"
 	tconfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/model"
-	"strings"
 )
 
 type AMSReportService struct {
 	config *sdkconfig.Config
 }
 
-func NewAMSReportService (sConfig *sdkconfig.Config) *AMSReportService {
+func NewAMSReportService(sConfig *sdkconfig.Config) *AMSReportService {
 	return &AMSReportService{
 		config: sConfig,
+	}
+}
+
+// GetReport 获取报表接口
+func (t *AMSReportService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.ReportTimeGranularity == sdk.ReportTimeDaily {
+		return t.getDailyReport(reportInput)
+	} else {
+		return t.getHourlyReport(reportInput)
 	}
 }
 
@@ -80,9 +90,7 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 	}
 }
 
-/**
-获取天级别的广告数据
-*/
+// getDailyReport 获取天级别的广告数据
 func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	tClient := t.getAMSReportClient(reportInput)
 	var level string

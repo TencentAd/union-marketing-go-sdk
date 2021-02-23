@@ -62,9 +62,15 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 		case sdk.LevelCreative:
 			*adLevel = "REPORT_LEVEL_AD"
 			break
+		case sdk.LevelVideo:
+			*adLevel = "REPORT_LEVEL_MATERIAL_VIDEO"
+			break
+		case sdk.LevelImage:
+			*adLevel = "REPORT_LEVEL_MATERIAL_IMAGE"
+			break
 		default:
 			*adLevel = ""
-			return false, nil
+			return false, fmt.Errorf("getReportAdLevel invalid adLevel= %s", reportInput.AdLevel)
 		}
 		return true, nil
 	} else {
@@ -83,7 +89,7 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 			break
 		default:
 			*adLevel = ""
-			return false, nil
+			return false, fmt.Errorf("getReportAdLevel invalid adLevel= %s", reportInput.AdLevel)
 		}
 		return true, nil
 	}
@@ -304,4 +310,21 @@ func (t *AMSReportService) copyHourReportToOutput(date string, hourResponseData 
 		TotalNumber: hourResponseData.PageInfo.TotalNumber,
 		TotalPage:   hourResponseData.PageInfo.TotalPage,
 	}
+}
+
+func (t *AMSReportService) GetVideoReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
+		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+	}
+	reportInput.TimeGranularity = sdk.ReportTimeDaily
+	reportInput.AdLevel = sdk.LevelVideo
+	return t.getDailyReport(reportInput)
+}
+func (t *AMSReportService) GetImageReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
+		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+	}
+	reportInput.TimeGranularity = sdk.ReportTimeDaily
+	reportInput.AdLevel = sdk.LevelImage
+	return t.getDailyReport(reportInput)
 }

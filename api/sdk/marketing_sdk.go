@@ -37,4 +37,6 @@ type Account interface {
 
 type Report interface {
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

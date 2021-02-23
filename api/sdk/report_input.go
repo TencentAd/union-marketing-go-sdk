@@ -36,6 +36,8 @@ const (
 	LevelCampaign AdLevel = "campaign"
 	LevelAd       AdLevel = "ad"
 	LevelCreative AdLevel = "creative"
+	LevelVideo    AdLevel = "video"
+	LevelImage    AdLevel = "image"
 )
 
 // 时间粒度

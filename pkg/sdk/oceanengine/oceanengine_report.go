@@ -1,29 +1,29 @@
 package oceanengine
 
-import (
-	api2 "git.code.oa.com/tme-server-component/kg_growth_open/api"
-	tconfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
-)
-
-// OceanEngineReport
-type OceanEngineReport struct {
-}
-
-// OceanEngineReport constructor
-func NewOceanEngineReport(msdkConfig *api2.MarketingSDKConfig) *OceanEngineReport {
-	tSdkConfig := tconfig.SDKConfig{
-		AccessToken:   msdkConfig.AccessToken,
-		IsDebug:       msdkConfig.IsDebug,
-		DebugFile:     msdkConfig.DebugFile,
-		SkipMonitor:   msdkConfig.SkipMonitor,
-		IsStrictMode:  msdkConfig.IsStrictMode,
-	}
-
-	tClient.UseProduction()
-	return &OceanEngineReport{
-		mSdkConfig: sdkConfig,
-	}
-}
+//import (
+//	api2 "git.code.oa.com/tme-server-component/kg_growth_open/api"
+//	tconfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
+//)
+//
+//// OceanEngineReport
+//type OceanEngineReport struct {
+//}
+//
+//// OceanEngineReport constructor
+//func NewOceanEngineReport(msdkConfig *api2.MarketingSDKConfig) *OceanEngineReport {
+//	tSdkConfig := tconfig.SDKConfig{
+//		AccessToken:   msdkConfig.AccessToken,
+//		IsDebug:       msdkConfig.IsDebug,
+//		DebugFile:     msdkConfig.DebugFile,
+//		SkipMonitor:   msdkConfig.SkipMonitor,
+//		IsStrictMode:  msdkConfig.IsStrictMode,
+//	}
+//
+//	tClient.UseProduction()
+//	return &OceanEngineReport{
+//		mSdkConfig: sdkConfig,
+//	}
+//}
 
 //func (a *DailyReportsApiService) Get(ctx context.Context, accountId int64, level string, dateRange ReportDateRange, localVarOptionals *DailyReportsGetOpts) (DailyReportsGetResponseData, http.Header, error) {
 //	var (

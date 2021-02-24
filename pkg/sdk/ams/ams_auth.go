@@ -130,7 +130,7 @@ func (s *AuthService) refresh() {
 		authAccount := account.GetAllAuthAccount()
 
 		for _, a := range authAccount {
-			if a.NeedRefreshToken() {
+			if needRefreshToken(a) {
 				amsResp, _, err := s.amsSDKClient.Oauth().Token(
 					context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
 					&api.OauthTokenOpts{
@@ -140,11 +140,9 @@ func (s *AuthService) refresh() {
 					log.Errorf("failed to call refresh token api for account[%d]", a.AccountId)
 				} else {
 					if err = account.RefreshToken(&sdk.AuthAccount{
-						AccountId:            a.AccountId,
-						AccessToken:          amsResp.AccessToken,
-						AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
-						//RefreshToken:         amsResp.RefreshToken,
-						//RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
+						AccountId:           a.AccountId,
+						AccessToken:         amsResp.AccessToken,
+						AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
 					}); err != nil {
 						log.Errorf("failed to refresh account[%d] token", a.AccountId)
 					}
@@ -152,4 +150,11 @@ func (s *AuthService) refresh() {
 			}
 		}
 	}
+}
+
+// needRefreshToken 判断是否需要刷新token
+// ams无法获取到refresh_token的失效时间，每次刷新时会更新，所以这里只判断access_token的失效时间
+func needRefreshToken(account *sdk.AuthAccount) bool {
+	now := time.Now()
+	return account.AccessTokenExpireAt.Sub(now) <= time.Hour
 }

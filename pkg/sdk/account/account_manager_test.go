@@ -14,7 +14,7 @@ func Test_manager(t *testing.T) {
 	db := orm.GetDB(&orm.Option{
 		Type:  orm.DBTypeSQLite,
 		DSN:   filepath.Join(t.TempDir(), "sqlite"),
-		Debug: true,
+		Debug: false,
 	})
 
 	assert.NotNil(t, db)

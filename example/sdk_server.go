@@ -18,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Config 配置
 type Config struct {
 	AMS  *sdkConfig.Config `json:"ams"`
 	HTTP *HTTPConfig       `json:"http"`
@@ -26,6 +27,7 @@ type Config struct {
 
 var conf Config
 
+// HTTPConfig http配置
 type HTTPConfig struct {
 	ServeAddress string `json:"serve_address"`
 }

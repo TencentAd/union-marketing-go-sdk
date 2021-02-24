@@ -2,13 +2,12 @@ package ams
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/define"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
@@ -30,7 +29,7 @@ func NewAuthService(config *config.Config) *AuthService {
 		config: config,
 	}
 
-	if err := s.Init(); err != nil {
+	if err := s.init(); err != nil {
 		log.Errorf("failed to init AuthService, err: %v", err)
 	}
 
@@ -39,40 +38,51 @@ func NewAuthService(config *config.Config) *AuthService {
 	return s
 }
 
-func (s *AuthService) Init() error {
+func (s *AuthService) init() error {
 	s.amsSDKClient = amsAds.Init(&amsConfig.SDKConfig{})
 	return nil
 }
 
-// ServeAMS 根据Authorization Code获取账户信息
-func (s *AuthService) ServeAuth(w http.ResponseWriter, req *http.Request) {
+// GenerateAuthURI implement Auth
+func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.GenerateAuthURIOutput, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
-		serveErrorResponse(w, fmt.Errorf("auth no ams config"))
-		return
+		return nil, fmt.Errorf("auth no ams config")
+	}
+	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s",
+		s.config.Auth.ClientID,
+		url.QueryEscape(input.RedirectURI),
+	)
+
+	return &sdk.GenerateAuthURIOutput{
+		AuthURI: authUri,
+	}, nil
+}
+
+// ProcessAuthCallback implement Auth
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput, error) {
+	authConf := s.config.Auth
+	if authConf == nil {
+		return nil, fmt.Errorf("auth no ams config")
 	}
 
-	query := req.URL.Query()
-	authorizationCode := query.Get("authorization_code")
-	if authorizationCode == "" {
-		serveErrorResponse(w, fmt.Errorf("'authorization_code' parameter not exist"))
-		return
+	authCode, err := s.getAuthCode(input.AuthCallback)
+	if err != nil {
+		return nil, err
 	}
 
 	amsResp, _, err := s.amsSDKClient.Oauth().Token(
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
 		&api.OauthTokenOpts{
-			AuthorizationCode: optional.NewString(authorizationCode),
+			AuthorizationCode: optional.NewString(authCode),
 			RedirectUri:       optional.NewString(authConf.RedirectUri),
 		})
 	if err != nil {
-		serveErrorResponse(w, err)
-		return
+		return nil, err
 	}
 
 	if amsResp.AuthorizerInfo == nil {
-		serveErrorResponse(w, fmt.Errorf("no authorizer info returned"))
-		return
+		return nil, fmt.Errorf("no authorizer info returned")
 	}
 
 	// convert response
@@ -91,32 +101,24 @@ func (s *AuthService) ServeAuth(w http.ResponseWriter, req *http.Request) {
 		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 	}
 
-	resp := &sdk.AuthResponse{
-		Code:    0,
-		Message: define.Success,
-		Data:    authAccount,
+	if err = account.ManagerSingleton.Insert(authAccount); err != nil {
+		return nil, err
 	}
+	return authAccount, nil
+}
 
-	serverResponse(w, resp)
+func (s *AuthService) getAuthCode(req *http.Request) (string, error) {
+	query := req.URL.Query()
+	authCode := query.Get("authorization_code")
+	if authCode == "" {
+		return "", fmt.Errorf("'authorization_code' parameter not exist")
+	}
+	return authCode, nil
 }
 
 // calcExpireAt 计算失效时间
 func calcExpireAt(expireIn int64) time.Time {
 	return time.Now().Add(time.Second * time.Duration(expireIn))
-}
-
-func serveErrorResponse(w http.ResponseWriter, err error) {
-	resp := &sdk.AuthResponse{
-		Code:    -1,
-		Message: err.Error(),
-	}
-
-	serverResponse(w, resp)
-}
-
-func serverResponse(w http.ResponseWriter, resp *sdk.AuthResponse) {
-	data, _ := json.Marshal(resp)
-	_, _ = w.Write(data)
 }
 
 func (s *AuthService) refresh() {

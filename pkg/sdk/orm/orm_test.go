@@ -31,7 +31,7 @@ func omitGormDebug() bool {
 			return true
 		}
 	}
-	return true
+	return false
 }
 
 func TestTables(t *testing.T) {

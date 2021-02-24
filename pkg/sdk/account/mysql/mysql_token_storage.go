@@ -14,8 +14,13 @@ func NewTokenStorage() *tokenStorage {
 }
 
 // Upsert
-func (s *tokenStorage) Ipsert(authInfo *sdk.AuthAccount) error {
-	return orm.AuthAccountUpsert(orm.GetDB(), authInfo)
+func (s *tokenStorage) Upsert(authAccount *sdk.AuthAccount) error {
+	return orm.AuthAccountUpsert(orm.GetDB(), authAccount)
+}
+
+// Update
+func (s *tokenStorage) Update(authAccount *sdk.AuthAccount) error {
+	return orm.AuthAccountUpdate(orm.GetDB(), authAccount)
 }
 
 // List

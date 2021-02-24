@@ -16,8 +16,9 @@ func TestAuthAccount(t *testing.T) {
 		account := &sdk.AuthAccount{
 			AccountId:   1,
 			AccessToken: "a",
+			ScopeList: []string{"a"},
 		}
-		assert.NoError(t, AuthAccountInsert(db, account))
+		assert.NoError(t, AuthAccountUpsert(db, account))
 	}
 	{
 		account, err := AuthAccountGetAll(db)

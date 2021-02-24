@@ -5,8 +5,8 @@ import (
 )
 
 type Storage interface {
-	// Insert 插入一条授权的账号信息
-	Insert(authAccount *sdk.AuthAccount) error
+	// Upsert 插入或者更新一条授权的账号信息
+	Upsert(authAccount *sdk.AuthAccount) error
 
 	// Upsert 更新一条授权的账号信息
 	Update(authAccount *sdk.AuthAccount) error

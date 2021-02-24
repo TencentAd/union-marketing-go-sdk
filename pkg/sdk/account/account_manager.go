@@ -10,6 +10,7 @@ type manager struct {
 	storage Storage
 }
 
+// Init 初始化账号管理器
 func Init(storage Storage) error {
 	ManagerSingleton = newManager(storage)
 	return ManagerSingleton.init()
@@ -40,9 +41,10 @@ func (m *manager) init() error {
 // Upsert 插入或者更新授权账户
 func (m *manager) Insert(authAccount *sdk.AuthAccount) error {
 	m.cache.insert(authAccount)
-	return m.storage.Insert(authAccount)
+	return m.storage.Upsert(authAccount)
 }
 
+// RefreshToken refresh后，更新token
 func (m *manager) RefreshToken(authAccount *sdk.AuthAccount) error {
 	current, err := m.cache.refreshToken(authAccount)
 	if err != nil {
@@ -57,6 +59,7 @@ func (m *manager) GetAuthAccount(accountID int64) *sdk.AuthAccount {
 	return m.cache.get(accountID)
 }
 
+// GetAllAuthAccount 获取所有授权账号
 func (m *manager) GetAllAuthAccount() []*sdk.AuthAccount {
 	return m.cache.getAll()
 }

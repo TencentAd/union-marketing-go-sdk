@@ -11,17 +11,33 @@ import (
 	"gorm.io/gorm"
 )
 
+// Auth 授权相关接口
 type Auth interface {
-	// 授权接口，在用户完成授权后，获取用户信息以及token相关信息
-	ServeAuth(w http.ResponseWriter, req *http.Request)
+	// GenerateAuthURI 生成对应平台的授权链接
+	GenerateAuthURI(*GenerateAuthURIInput) (*GenerateAuthURIOutput, error)
+
+	// ProcessAuthCallback 在用户完成授权后，处理回调请求，获取用户信息以及token相关信息
+	ProcessAuthCallback(input *ProcessAuthCallbackInput) (*ProcessAuthCallbackOutput, error)
 }
 
-// AuthResponse 授权输出
-type AuthResponse struct {
-	Code    int          `json:"code"`
-	Message string       `json:"message"`
-	Data    *AuthAccount `json:"data"`
+// GenerateAuthURIInput
+type GenerateAuthURIInput struct {
+	RedirectURI string `json:"redirect_uri"` // 回调地址
 }
+
+// GenerateAuthURIOutput
+type GenerateAuthURIOutput struct {
+	AuthURI string `json:"auth_uri"` // 生成的授权链接
+}
+
+// ProcessAuthCallbackInput 授权回调处理输入
+type ProcessAuthCallbackInput struct {
+	AuthCallback *http.Request `json:"auth_callback"` // 回调请求，包含auth_code
+	RedirectUri  string        `json:"redirect_uri"`  // 原始的回调地址
+}
+
+// ProcessAuthCallbackOutput 授权回调处理输出
+type ProcessAuthCallbackOutput = AuthAccount
 
 // AuthAccount 授权账号输出
 type AuthAccount struct {
@@ -37,19 +53,21 @@ type AuthAccount struct {
 	AccessTokenExpireAt  time.Time       `gorm:"column:access_token_expires_at"  json:"access_token_expires_at,omitempty"`
 	RefreshTokenExpireAt time.Time       `gorm:"column:refresh_token_expires_at" json:"refresh_token_expires_at,omitempty"`
 
-	CreatedAt time.Time      `gorm:"column:created_at"      json:"created_at,omitempty"`
-	UpdatedAt time.Time      `gorm:"column:updated_at"      json:"updated_at,omitempty"`
+	CreatedAt time.Time      `gorm:"column:created_at"      json:"-"`
+	UpdatedAt time.Time      `gorm:"column:updated_at"      json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"column:delete_at;index" json:"-"`
 }
 
+// StringList string列表
 type StringList []string
 
+// Scan implement sql.Scanner
 func (s *StringList) Scan(value interface{}) error {
 	return scan(value, s)
 }
 
 // Value return json value, implement driver.Valuer interface
-func (s *StringList) Value() (driver.Value, error) {
+func (s StringList) Value() (driver.Value, error) {
 	return value(s)
 }
 
@@ -72,6 +90,7 @@ func value(v interface{}) (driver.Value, error) {
 	return string(bytes), err
 }
 
-func (aa *AuthAccount) Key() string {
-	return strconv.FormatInt(aa.AccountId, 10)
+// AuthAccount 授权账号的key
+func (account *AuthAccount) Key() string {
+	return strconv.FormatInt(account.AccountId, 10)
 }

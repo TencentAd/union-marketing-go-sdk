@@ -6,6 +6,7 @@ require (
 	github.com/antihax/optional v1.0.0
 	github.com/awatercolorpen/nitro/config v1.0.0
 	github.com/imkira/go-libav v0.0.0-20190125075901-6bf952df9de5 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.5.1

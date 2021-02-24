@@ -5,14 +5,26 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthAccountInsert(db *gorm.DB, authAccount *sdk.AuthAccount) error {
-	return db.Create(authAccount).Error
+// AuthAccountUpsert 插入或者更新授权的账号信息
+func AuthAccountUpsert(db *gorm.DB, authAccount *sdk.AuthAccount) error {
+	var count int64
+	if  err := db.Model(authAccount).Where("account_id = ?", authAccount.AccountId).Count(&count).Error; err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return db.Create(authAccount).Error
+	} else {
+		return db.Updates(authAccount).Error
+	}
 }
 
+// AuthAccountUpdate 更新授权的账号信息
 func AuthAccountUpdate(db *gorm.DB, authAccount *sdk.AuthAccount) error {
 	return db.Updates(authAccount).Error
 }
 
+// AuthAccountGetAll 获取所有的授权账号
 func AuthAccountGetAll(db *gorm.DB) ([]*sdk.AuthAccount, error) {
 	var account []*sdk.AuthAccount
 	if err := db.Find(&account).Error; err != nil {

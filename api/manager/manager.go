@@ -15,32 +15,18 @@ var (
 
 func init() {
 	instance = &manager{
-		impl: make(map[string]sdk.MarketingSDK),
+		impl:           make(map[string]sdk.MarketingSDK),
 	}
 }
 
 type manager struct {
-	impl map[string]sdk.MarketingSDK
-	serveMux *http.ServeMux
-}
-
-func SetServeMux(serveMux *http.ServeMux) {
-	instance.serveMux = serveMux
+	impl           map[string]sdk.MarketingSDK
+	serveMux       *http.ServeMux
 }
 
 // Register 注册对应平台的实现
 func Register(platform string, impl sdk.MarketingSDK) {
 	instance.impl[platform] = impl
-	serveAuth(platform, impl)
-}
-
-// serveAuth 提供http接口，在用户授权后获取token信息
-func serveAuth(platform string, impl sdk.MarketingSDK) {
-	if instance.serveMux != nil {
-		instance.serveMux.HandleFunc(fmt.Sprintf("/%s", platform), impl.ServeAuth)
-	} else {
-		http.HandleFunc(fmt.Sprintf("/%s", platform), impl.ServeAuth)
-	}
 }
 
 // GetImpl 获取对应平台的实现

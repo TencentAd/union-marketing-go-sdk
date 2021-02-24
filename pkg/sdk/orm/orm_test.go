@@ -40,6 +40,15 @@ func TestTables(t *testing.T) {
 	assert.NoError(t, Setup(db))
 }
 
+func setupTestDB(t *testing.T) (*gorm.DB, error) {
+	db, err := getTestDB(t)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, Setup(db)
+}
+
 func TestLockDB(t *testing.T) {
 	db, _ := getTestDB(t)
 	if db.Dialector.Name() == string(DBTypeSQLite) {

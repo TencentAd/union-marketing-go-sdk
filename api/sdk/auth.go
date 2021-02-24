@@ -94,3 +94,10 @@ func value(v interface{}) (driver.Value, error) {
 func (account *AuthAccount) Key() string {
 	return strconv.FormatInt(account.AccountId, 10)
 }
+
+// NeedRefreshToken 判断是否需要刷新token
+func (account *AuthAccount) NeedRefreshToken() bool {
+	now := time.Now()
+	return account.RefreshTokenExpireAt.Sub(now) <= time.Hour ||
+		account.AccessTokenExpireAt.Sub(now) <= time.Hour
+}

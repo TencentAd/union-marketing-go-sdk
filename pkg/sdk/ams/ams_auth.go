@@ -39,7 +39,9 @@ func NewAuthService(config *config.Config) *AuthService {
 }
 
 func (s *AuthService) init() error {
-	s.amsSDKClient = amsAds.Init(&amsConfig.SDKConfig{})
+	s.amsSDKClient = amsAds.Init(&amsConfig.SDKConfig{
+		IsDebug: true,
+	})
 	return nil
 }
 
@@ -101,7 +103,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 	}
 
-	if err = account.ManagerSingleton.Insert(authAccount); err != nil {
+	if err = account.Insert(authAccount); err != nil {
 		return nil, err
 	}
 	return authAccount, nil
@@ -125,11 +127,10 @@ func (s *AuthService) refresh() {
 	authConfig := s.config.Auth
 	for {
 		time.Sleep(10 * time.Second)
-		now := time.Now()
-		authAccount := account.ManagerSingleton.GetAllAuthAccount()
+		authAccount := account.GetAllAuthAccount()
 
 		for _, a := range authAccount {
-			if a.RefreshTokenExpireAt.Sub(now) <= time.Hour || a.AccessTokenExpireAt.Sub(now) <= time.Hour {
+			if a.NeedRefreshToken() {
 				amsResp, _, err := s.amsSDKClient.Oauth().Token(
 					context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
 					&api.OauthTokenOpts{
@@ -138,11 +139,12 @@ func (s *AuthService) refresh() {
 				if err != nil {
 					log.Errorf("failed to call refresh token api for account[%d]", a.AccountId)
 				} else {
-					if err = account.ManagerSingleton.RefreshToken(&sdk.AuthAccount{
-						RefreshToken:         amsResp.RefreshToken,
+					if err = account.RefreshToken(&sdk.AuthAccount{
+						AccountId:            a.AccountId,
 						AccessToken:          amsResp.AccessToken,
-						RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 						AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
+						//RefreshToken:         amsResp.RefreshToken,
+						//RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 					}); err != nil {
 						log.Errorf("failed to refresh account[%d] token", a.AccountId)
 					}

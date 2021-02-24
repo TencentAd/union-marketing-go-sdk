@@ -8,9 +8,8 @@ import (
 )
 
 func TestAuthAccount(t *testing.T) {
-	db, err := getTestDB(t)
+	db, err := setupTestDB(t)
 	assert.NoError(t, err)
-	assert.NoError(t, Setup(db))
 
 	{
 		account := &sdk.AuthAccount{

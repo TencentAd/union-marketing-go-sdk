@@ -35,6 +35,13 @@ type CreativeOperation interface {
 type Account interface {
 }
 
+type Material interface {
+	AddImage()
+	GetImage()
+	AddVideo()
+	GetVideo()
+}
+
 type Report interface {
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
 	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)

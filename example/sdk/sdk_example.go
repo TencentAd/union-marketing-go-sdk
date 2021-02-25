@@ -88,6 +88,14 @@ func main() {
 
 	amsImpl := ams.NewAMSService(conf.AMS)
 	manager.Register("ams", amsImpl)
+
+	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
+	if err != nil {
+		log.Errorf("failed to generate auth uri, err: %v", err)
+	} else {
+		log.Info(output.AuthURI)
+	}
+
 	serveAuthCallback("/ams", amsImpl, conf.AMS.Auth.RedirectUri)
 
 	if err := http.ListenAndServe(conf.HTTP.ServeAddress, nil); err != nil {

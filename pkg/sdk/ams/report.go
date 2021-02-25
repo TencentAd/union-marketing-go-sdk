@@ -2,6 +2,8 @@ package ams
 
 import (
 	"fmt"
+	"strings"
+
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
@@ -9,9 +11,9 @@ import (
 	tapi "github.com/tencentad/marketing-api-go-sdk/pkg/api"
 	tconfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/model"
-	"strings"
 )
 
+// AMSReportService 报表服务
 type AMSReportService struct {
 	config *sdkconfig.Config
 }
@@ -22,7 +24,7 @@ func NewAMSReportService(sConfig *sdkconfig.Config) *AMSReportService {
 	}
 }
 
-// 获取报表接口
+// GetReport 获取报表接口
 func (t *AMSReportService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	if reportInput.TimeGranularity == sdk.ReportTimeDaily {
 		return t.getDailyReport(reportInput)
@@ -43,10 +45,11 @@ func getAMSSdkClient(input *sdk.BaseInput) *ads.SDKClient {
 
 const TFilterMax = 5
 
+// getReportAdLevel 获取报表adlevel
 func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adLevel *string) (bool, error) {
-
 	if reportInput.BaseInput.AccountType <= sdk.AccountTypeInvalid || reportInput.BaseInput.AccountType >= sdk.AccountTypeMax {
-		return false, fmt.Errorf("getReportAdLevel invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+		return false, fmt.Errorf("getReportAdLevel invalid account type = %d, id = %d",
+			reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
 	}
 	if reportInput.BaseInput.AccountType == sdk.AccountTypeAMS {
 		switch reportInput.AdLevel {
@@ -163,7 +166,8 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 	dailyReportsGetOpts.Fields = optional.NewInterface(reportInput.Fields_AMS)
 
 	// 获取天级别广告数据
-	result, _, err := tClient.DailyReports().Get(*tClient.Ctx, reportInput.BaseInput.AccountId, level, dateRange, &dailyReportsGetOpts)
+	result, _, err := tClient.DailyReports().Get(*tClient.Ctx, reportInput.BaseInput.AccountId, level, dateRange,
+		&dailyReportsGetOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +176,7 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 	return reportOutput, err
 }
 
+// copyDailyReportToOutput 拷贝天级别报表数据
 func (t *AMSReportService) copyDailyReportToOutput(dailyResponseData *model.DailyReportsGetResponseData, reportOutput *sdk.GetReportOutput) {
 	if len(*dailyResponseData.List) == 0 {
 		return
@@ -283,6 +288,7 @@ func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sd
 	return reportOutput, err
 }
 
+// copyHourReportToOutput 拷贝小时级别数据
 func (t *AMSReportService) copyHourReportToOutput(date string, hourResponseData *model.HourlyReportsGetResponseData, reportOutput *sdk.GetReportOutput) {
 	if len(*hourResponseData.List) == 0 {
 		return
@@ -318,14 +324,18 @@ func (t *AMSReportService) copyHourReportToOutput(date string, hourResponseData 
 	}
 }
 
+// GetVideoReport 获取视频报表
 func (t *AMSReportService) GetVideoReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
-		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d",
+			reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
 	}
 	reportInput.TimeGranularity = sdk.ReportTimeDaily
 	reportInput.AdLevel = sdk.LevelVideo
 	return t.getDailyReport(reportInput)
 }
+
+// GetImageReport 获取图片报表
 func (t *AMSReportService) GetImageReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
 		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)

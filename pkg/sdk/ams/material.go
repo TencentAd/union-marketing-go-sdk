@@ -10,17 +10,19 @@ import (
 	"github.com/tencentad/marketing-api-go-sdk/pkg/model"
 )
 
+// AMSMaterialService AMS物料服务
 type AMSMaterialService struct {
 	config *sdkconfig.Config
 }
 
+// NewAMSMaterialService 获取物料服务
 func NewAMSMaterialService(sConfig *sdkconfig.Config) *AMSMaterialService {
 	return &AMSMaterialService{
 		config: sConfig,
 	}
 }
 
-// 增加图片上传
+// AddImage 增加图片上传
 func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutput, error) {
 	tClient := getAMSSdkClient(&input.BaseInput)
 	imagesAddOpts := &api.ImagesAddOpts{}
@@ -33,8 +35,8 @@ func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddO
 	if len(input.Desc) > 0 {
 		imagesAddOpts.Description = optional.NewString(input.Desc)
 	}
-
-	response, _, err := tClient.Images().Add(*tClient.Ctx, input.BaseInput.AccountId, string(input.UploadType), input.Signature, imagesAddOpts)
+	response, _, err := tClient.Images().Add(*tClient.Ctx, input.BaseInput.AccountId, string(input.UploadType),
+		input.Signature, imagesAddOpts)
 	output := &sdk.ImagesAddOutput{
 		ImageId:     response.ImageId,
 		PreviewUrl:  response.PreviewUrl,
@@ -50,6 +52,7 @@ func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddO
 
 var TMaterialFilterMax = 4
 
+// getFilter 获取过滤信息
 func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput) interface{} {
 	if input.Filtering == nil {
 		return nil
@@ -73,7 +76,6 @@ func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput) interface{} 
 			Values:   &[]string{strconv.FormatInt(imageFiltering.Width, 10)},
 		})
 	}
-
 	// Height
 	if imageFiltering.Height > 0 {
 		TFiltering = append(TFiltering, model.FilteringStruct{
@@ -82,7 +84,6 @@ func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput) interface{} 
 			Values:   &[]string{strconv.FormatInt(imageFiltering.Height, 10)},
 		})
 	}
-
 	// CreatedStartTime
 	if len(imageFiltering.CreatedStartTime) > 0 {
 		TFiltering = append(TFiltering, model.FilteringStruct{
@@ -91,7 +92,6 @@ func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput) interface{} 
 			Values:   &[]string{imageFiltering.CreatedStartTime},
 		})
 	}
-
 	// CreatedEndTime
 	if len(imageFiltering.CreatedEndTime) > 0 {
 		TFiltering = append(TFiltering, model.FilteringStruct{
@@ -103,17 +103,17 @@ func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput) interface{} 
 	return TFiltering
 }
 
-// 获取图片信息
+// GetImage 获取图片信息
 func (t *AMSMaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOutput, error) {
 	tClient := getAMSSdkClient(&input.BaseInput)
 	imagesGetOpts := &api.ImagesGetOpts{
-		Fields: optional.NewInterface([]string{"image_id", "width", "height", "file_size", "type", "signature", "source_signature", "preview_url", "source_type", "created_time", "last_modified_time"}),
+		Fields: optional.NewInterface([]string{"image_id", "width", "height", "file_size", "type", "signature",
+			"source_signature", "preview_url", "source_type", "created_time", "last_modified_time"}),
 	}
 	tFilter := t.getFilter(input)
 	if tFilter != nil {
 		imagesGetOpts.Filtering = optional.NewInterface(tFilter)
 	}
-
 	response, _, err := tClient.Images().Get(*tClient.Ctx, input.BaseInput.AccountId, imagesGetOpts)
 	if err != nil {
 		return nil, err
@@ -123,6 +123,7 @@ func (t *AMSMaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGe
 	return imageOutput, err
 }
 
+// copyImageInfoToOutput 拷贝图片信息
 func (t *AMSMaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesGetResponseData, imageOutput *sdk.ImageGetOutput) {
 	if len(*imageResponseData.List) == 0 {
 		return
@@ -154,11 +155,16 @@ func (t *AMSMaterialService) copyImageInfoToOutput(imageResponseData *model.Imag
 	}
 }
 
-// 获取视频信息
+// GetVideo 获取视频信息
 func (t *AMSMaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOutput, error) {
 	tClient := getAMSSdkClient(&input.BaseInput)
 	videoGetOpts := &api.VideosGetOpts{
-		Fields: optional.NewInterface([]string{"video_id", "width", "height", "video_frames", "video_fps", "video_codec", "video_bit_rate", "audio_codec", "audio_bit_rate", "file_size", "type", "signature", "system_status", "description", "preview_url", "created_time", "last_modified_time", "video_profile_name", "audio_sample_rate", "max_keyframe_interval", "min_keyframe_interval", "sample_aspect_ratio", "audio_profile_name", "scan_type", "image_duration_millisecond", "audio_duration_millisecond", "source_type"}),
+		Fields: optional.NewInterface([]string{"video_id", "width", "height", "video_frames", "video_fps",
+			"video_codec", "video_bit_rate", "audio_codec", "audio_bit_rate", "file_size", "type", "signature",
+			"system_status", "description", "preview_url", "created_time", "last_modified_time",
+			"video_profile_name", "audio_sample_rate", "max_keyframe_interval", "min_keyframe_interval",
+			"sample_aspect_ratio", "audio_profile_name", "scan_type", "image_duration_millisecond",
+			"audio_duration_millisecond", "source_type"}),
 	}
 	tFilter := t.getFilter(input)
 	if tFilter != nil {
@@ -179,6 +185,7 @@ func (t *AMSMaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGe
 	return videoOutput, err
 }
 
+// copyVideoInfoToOutput 拷贝视频信息
 func (t *AMSMaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosGetResponseData, videoOutput *sdk.VideoGetOutput) {
 	if len(*videoResponseData.List) == 0 {
 		return
@@ -226,7 +233,7 @@ func (t *AMSMaterialService) copyVideoInfoToOutput(videoResponseData *model.Vide
 	}
 }
 
-// 增加视频上传
+// AddVideo 增加视频上传
 func (t *AMSMaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutput, error) {
 	tClient := getAMSSdkClient(&input.BaseInput)
 	videoAddOpts := &api.VideosAddOpts{}
@@ -237,5 +244,5 @@ func (t *AMSMaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOu
 	output := &sdk.VideoAddOutput{
 		VideoId: response.VideoId,
 	}
-	return output,err
+	return output, err
 }

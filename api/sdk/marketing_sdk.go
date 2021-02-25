@@ -1,14 +1,10 @@
 package sdk
 
 type MarketingSDK interface {
-	Auth // fa
-	ADDelivery
-	Account
+	Auth // 授权接口
+	//ADDelivery
+	//Account
 	Report
-}
-
-type Auth interface {
-	GetToken(input interface{}) (interface{}, error)
 }
 
 type ADDelivery interface {

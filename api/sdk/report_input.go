@@ -19,7 +19,7 @@ type GetReportInput struct {
 	Fields_AMS []string `json:"fields,omitempty"` // 指定返回字段
 }
 
-type AccountType int
+type AuthAccountType int
 
 const (
 	AccountTypeInvalid   = 0

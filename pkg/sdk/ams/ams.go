@@ -5,8 +5,10 @@ import (
 )
 
 type AMService struct {
-	config              *sdkconfig.Config
-	*AMSReportService   // 报表模块
+	config         *sdkconfig.Config
+
+	*AMSReportService // 报表模块
+	*AuthService
 	*AMSMaterialService // 物料管理模块
 }
 
@@ -17,8 +19,9 @@ func (t *AMService) Name() string {
 
 func NewAMSService(sconfig *sdkconfig.Config) *AMService {
 	return &AMService{
-		config:             sconfig,
-		AMSReportService:   NewAMSReportService(sconfig),
+		config:     sconfig,
+		AMSReportService: NewAMSReportService(sconfig),
 		AMSMaterialService: NewAMSMaterialService(sconfig),
+		AuthService:      NewAuthService(sconfig),
 	}
 }

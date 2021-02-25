@@ -35,10 +35,14 @@ stages:
           scriptType: SHELL
           content: |
             #!/bin/bash
+            export GOPRIVATE="git.code.oa.com"
+            export GIT_TERMINAL_PROMPT=1
             go test -gcflags "all=-N -l" --tags=json1 -covermode=atomic ./... -bench . -benchmem --args omit_gorm_debug
       - taskType: bash@latest
         inputs:
           scriptType: SHELL
           content: |
             #!/bin/bash
+            export GOPRIVATE="git.code.oa.com"
+            export GIT_TERMINAL_PROMPT=1
             go vet -httpresponse -assign -nilfunc -printf -unreachable -atomic ./...

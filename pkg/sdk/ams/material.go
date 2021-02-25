@@ -1,7 +1,6 @@
 package ams
 
 import (
-	"os"
 	"strconv"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
@@ -26,7 +25,7 @@ func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddO
 	tClient := getAMSSdkClient(&input.BaseInput)
 	imagesAddOpts := &api.ImagesAddOpts{}
 	if input.File != nil {
-		imagesAddOpts.File = optional.NewInterface(os.NewFile(0, "addImageTest.jpeg"))
+		imagesAddOpts.File = optional.NewInterface(input.File)
 	}
 	if len(input.Bytes) > 0 {
 		imagesAddOpts.Bytes = optional.NewString(input.Bytes)

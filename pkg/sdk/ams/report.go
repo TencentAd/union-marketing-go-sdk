@@ -17,7 +17,7 @@ import (
 type AMSReportService struct {
 	config *sdkconfig.Config
 }
-
+// NewAMSReportService 创建AMS报表服务
 func NewAMSReportService(sConfig *sdkconfig.Config) *AMSReportService {
 	return &AMSReportService{
 		config: sConfig,
@@ -98,6 +98,39 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 	}
 }
 
+func (t *AMSReportService) getReportFilter(reportInput *sdk.GetReportInput) interface{} {
+	if reportInput.Filtering == nil {
+		return nil
+	}
+	TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
+	// campaign_id
+	mFiltering := reportInput.Filtering.(*sdk.Filtering)
+	if len(mFiltering.CampaignIDList) > 0 {
+		TFiltering = append(TFiltering, model.FilteringStruct{
+			Field:    "campaign_id",
+			Operator: "IN",
+			Values:   &mFiltering.CampaignIDList,
+		})
+	}
+	// adgroup_id
+	if len(mFiltering.GroupIDList) > 0 {
+		TFiltering = append(TFiltering, model.FilteringStruct{
+			Field:    "adgroup_id",
+			Operator: "IN",
+			Values:   &mFiltering.CampaignIDList,
+		})
+	}
+	// ad_id
+	if len(mFiltering.CreativeIDList) > 0 {
+		TFiltering = append(TFiltering, model.FilteringStruct{
+			Field:    "ad_id",
+			Operator: "IN",
+			Values:   &mFiltering.CreativeIDList,
+		})
+	}
+	return TFiltering
+}
+
 // getDailyReport 获取天级别的广告数据
 func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	tClient := getAMSSdkClient(&reportInput.BaseInput)
@@ -113,35 +146,8 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 
 	var dailyReportsGetOpts tapi.DailyReportsGetOpts
 	// Filtering
-	if reportInput.Filtering != nil {
-		TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
-		// TODO 验证 Operator: "IN"是否可以完全替代EQUALS
-		// campaign_id
-		mFiltering := reportInput.Filtering.(*sdk.Filtering)
-		if len(mFiltering.CampaignIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "campaign_id",
-				Operator: "IN",
-				Values:   &mFiltering.CampaignIDList,
-			})
-		}
-		// adgroup_id
-		if len(mFiltering.GroupIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "adgroup_id",
-				Operator: "IN",
-				Values:   &mFiltering.CampaignIDList,
-			})
-		}
-		// ad_id
-		if len(mFiltering.CreativeIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "ad_id",
-				Operator: "IN",
-				Values:   &mFiltering.CreativeIDList,
-			})
-		}
-		dailyReportsGetOpts.Filtering = optional.NewInterface(TFiltering)
+	if res := t.getReportFilter(reportInput); res != nil {
+		dailyReportsGetOpts.Filtering = optional.NewInterface(res)
 	}
 
 	// GroupBy 逗号分割
@@ -226,35 +232,8 @@ func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sd
 
 	var hourlyReportsGetOpts tapi.HourlyReportsGetOpts
 	// Filtering
-	if reportInput.Filtering != nil {
-		TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
-		// TODO 验证 Operator: "IN"是否可以完全替代EQUALS
-		// campaign_id
-		mFiltering := reportInput.Filtering.(*sdk.Filtering)
-		if len(mFiltering.CampaignIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "campaign_id",
-				Operator: "IN",
-				Values:   &mFiltering.CampaignIDList,
-			})
-		}
-		// adgroup_id
-		if len(mFiltering.GroupIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "adgroup_id",
-				Operator: "IN",
-				Values:   &mFiltering.CampaignIDList,
-			})
-		}
-		// ad_id
-		if len(mFiltering.CreativeIDList) > 0 {
-			TFiltering = append(TFiltering, model.FilteringStruct{
-				Field:    "ad_id",
-				Operator: "IN",
-				Values:   &mFiltering.CreativeIDList,
-			})
-		}
-		hourlyReportsGetOpts.Filtering = optional.NewInterface(TFiltering)
+	if res := t.getReportFilter(reportInput); res != nil {
+		hourlyReportsGetOpts.Filtering = optional.NewInterface(res)
 	}
 
 	// GroupBy 逗号分割
@@ -338,7 +317,8 @@ func (t *AMSReportService) GetVideoReport(reportInput *sdk.GetReportInput) (*sdk
 // GetImageReport 获取图片报表
 func (t *AMSReportService) GetImageReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
-		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+		return nil, fmt.Errorf("GetDailyVideoReport  invalid account type = %d, id = %d",
+			reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
 	}
 	reportInput.TimeGranularity = sdk.ReportTimeDaily
 	reportInput.AdLevel = sdk.LevelImage

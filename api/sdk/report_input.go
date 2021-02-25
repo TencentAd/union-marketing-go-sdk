@@ -60,13 +60,13 @@ type Filtering struct {
 	CampaignIDList []string `json:"campaign_ids,omitempty"`  // 计划id列表
 	GroupIDList    []string `json:"adgroup_id,omitempty"`    // 组id列表
 	CreativeIDList []string `json:"creative_id,omitempty"`   // 广告创意id列表
-	LandingTypes   []string `json:"landing_types,omitempty"` // 推广目的列表
+	//LandingTypes   []string `json:"landing_types,omitempty"` // 推广目的列表
 	// Ocean
-	InventoryTypes        optional.Interface `json:"inventory_types,omitempty"`         // 投放版位
-	PricingTypes          optional.Interface `json:"pricings,omitempty"`                // 出价类型
-	ImageModes            optional.Interface `json:"image_modes,omitempty"`             // 素材类型列表
-	CreativeMaterialModes optional.Interface `json:"creative_material_modes,omitempty"` // 创意类型列表
-	FilterStatus          optional.Interface `json:"filter_status,omitempty"`           // 过滤状态：
+	//InventoryTypes        optional.Interface `json:"inventory_types,omitempty"`         // 投放版位
+	//PricingTypes          optional.Interface `json:"pricings,omitempty"`                // 出价类型
+	//ImageModes            optional.Interface `json:"image_modes,omitempty"`             // 素材类型列表
+	//CreativeMaterialModes optional.Interface `json:"creative_material_modes,omitempty"` // 创意类型列表
+	//FilterStatus          optional.Interface `json:"filter_status,omitempty"`           // 过滤状态：
 }
 
 type GroupBy string

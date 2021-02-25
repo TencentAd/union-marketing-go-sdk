@@ -11,7 +11,7 @@ type GetReportInput struct {
 	TimeGranularity TimeGranularity `json:"time_granularity,omitempty"` // 时间粒度
 	DateRange       DateRange       `json:"data_range,omitempty"`       // 日期范围
 	Filtering       interface{}     `json:"filtering,omitempty"`        // 过滤条件
-	GroupBy         GroupBy         `json:"group_by,omitempty"`         // 聚合条件
+	GroupBy         []GroupBy        `json:"group_by,omitempty"`         // 聚合条件
 	OrderBy         OrderBy         `json:"order_by,omitempty"`         // 排序
 	Page            optional.Int64  `json:"page,omitempty"`             // 搜索页码，默认值：1 最小值 1，最大值 99999
 	PageSize        optional.Int64  `json:"page_size,omitempty"`        // 一页显示的数据条数，默认值：10 最小值 1，最大值 1000
@@ -36,6 +36,8 @@ const (
 	LevelCampaign AdLevel = "campaign"
 	LevelAd       AdLevel = "ad"
 	LevelCreative AdLevel = "creative"
+	LevelVideo    AdLevel = "video"
+	LevelImage    AdLevel = "image"
 )
 
 // 时间粒度
@@ -70,7 +72,7 @@ type Filtering struct {
 type GroupBy string
 
 const (
-	// AMS
+	// AMS 只支持其中一种
 	ADVERTISER_DATE_AMS      GroupBy = "date"                     // 按照date聚合
 	CAMPAIGN_DATE_AMS        GroupBy = "date,campaign_id"         // 按照date,campaign_id聚合
 	ADGROUP_DATE_AMS         GroupBy = "date,adgroup_id"          // 支持按date、adgroup_id、site_set 聚合
@@ -78,7 +80,7 @@ const (
 	AD_DATE_AMS              GroupBy = "date,ad_id"               // 按照date,ad_id聚合
 	AD_DATE_SITESET_AMS      GroupBy = "date,ad_id,site_set"      // 按照date、ad_id、site_set聚合
 
-	// Oceans
+	// Oceans 具体参考https://ad.oceanengine.com/openapi/doc/index.html?id=1680341171717197
 	STAT_GROUP_BY_FIELD_ID GroupBy = "STAT_GROUP_BY_FIELD_ID" // ID 类型-按照 ID 分组
 	// TODO
 )

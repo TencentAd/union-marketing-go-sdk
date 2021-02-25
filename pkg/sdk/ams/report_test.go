@@ -26,7 +26,7 @@ func TestGetDailyReport(t *testing.T) {
 			EndDate:   "2021-02-08",
 		},
 		Filtering: nil,
-		GroupBy:   sdk.ADVERTISER_DATE_AMS,
+		GroupBy:   []sdk.GroupBy{sdk.ADVERTISER_DATE_AMS},
 		OrderBy: sdk.OrderBy{
 			SortField: "view_count",
 			SortType:  sdk.DESCENDING_AMS,

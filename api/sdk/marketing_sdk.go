@@ -32,8 +32,20 @@ type ADGroupOperation interface {
 type CreativeOperation interface {
 }
 
+type Account interface {
+}
+
+type Material interface {
+	AddImage()
+	GetImage()
+	AddVideo()
+	GetVideo()
+}
+
 // Report 报表相关接口
 type Report interface {
 	// GetReport 获取报表
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

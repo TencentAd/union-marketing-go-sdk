@@ -31,10 +31,10 @@ func (t *AMSReportService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetR
 	}
 }
 
-// TencentReport constructor
-func (t *AMSReportService) getAMSReportClient(reportInput *sdk.GetReportInput) *ads.SDKClient {
+// Tencent
+func getAMSSdkClient(input *sdk.BaseInput) *ads.SDKClient {
 	tSdkConfig := tconfig.SDKConfig{
-		AccessToken: reportInput.BaseInput.AccessToken,
+		AccessToken: input.AccessToken,
 	}
 	tClient := ads.Init(&tSdkConfig)
 	tClient.UseProduction()
@@ -62,9 +62,15 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 		case sdk.LevelCreative:
 			*adLevel = "REPORT_LEVEL_AD"
 			break
+		case sdk.LevelVideo:
+			*adLevel = "REPORT_LEVEL_MATERIAL_VIDEO"
+			break
+		case sdk.LevelImage:
+			*adLevel = "REPORT_LEVEL_MATERIAL_IMAGE"
+			break
 		default:
 			*adLevel = ""
-			return false, nil
+			return false, fmt.Errorf("getReportAdLevel invalid adLevel= %s", reportInput.AdLevel)
 		}
 		return true, nil
 	} else {
@@ -83,7 +89,7 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 			break
 		default:
 			*adLevel = ""
-			return false, nil
+			return false, fmt.Errorf("getReportAdLevel invalid adLevel= %s", reportInput.AdLevel)
 		}
 		return true, nil
 	}
@@ -91,7 +97,7 @@ func (t *AMSReportService) getReportAdLevel(reportInput *sdk.GetReportInput, adL
 
 // getDailyReport 获取天级别的广告数据
 func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
-	tClient := t.getAMSReportClient(reportInput)
+	tClient := getAMSSdkClient(&reportInput.BaseInput)
 	var level string
 	isSucc, err := t.getReportAdLevel(reportInput, &level)
 	if !isSucc {
@@ -108,7 +114,7 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 		TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
 		// TODO 验证 Operator: "IN"是否可以完全替代EQUALS
 		// campaign_id
-		mFiltering := reportInput.Filtering.(sdk.Filtering)
+		mFiltering := reportInput.Filtering.(*sdk.Filtering)
 		if len(mFiltering.CampaignIDList) > 0 {
 			TFiltering = append(TFiltering, model.FilteringStruct{
 				Field:    "campaign_id",
@@ -137,7 +143,10 @@ func (t *AMSReportService) getDailyReport(reportInput *sdk.GetReportInput) (*sdk
 
 	// GroupBy 逗号分割
 	if len(reportInput.GroupBy) > 0 {
-		dailyReportsGetOpts.GroupBy = optional.NewInterface(strings.Split(string(reportInput.GroupBy), ","))
+		groupby := reportInput.GroupBy[0]
+		if len(groupby) > 0 {
+			dailyReportsGetOpts.GroupBy = optional.NewInterface(strings.Split(string(groupby), ","))
+		}
 	}
 
 	// OrderBy
@@ -199,7 +208,7 @@ func (t *AMSReportService) copyDailyReportToOutput(dailyResponseData *model.Dail
 
 // getHourlyReport 获取小时级别的广告数据
 func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
-	tClient := t.getAMSReportClient(reportInput)
+	tClient := getAMSSdkClient(&reportInput.BaseInput)
 	var level string
 	isSucc, err := t.getReportAdLevel(reportInput, &level)
 	if !isSucc {
@@ -216,7 +225,7 @@ func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sd
 		TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
 		// TODO 验证 Operator: "IN"是否可以完全替代EQUALS
 		// campaign_id
-		mFiltering := reportInput.Filtering.(sdk.Filtering)
+		mFiltering := reportInput.Filtering.(*sdk.Filtering)
 		if len(mFiltering.CampaignIDList) > 0 {
 			TFiltering = append(TFiltering, model.FilteringStruct{
 				Field:    "campaign_id",
@@ -245,7 +254,10 @@ func (t *AMSReportService) getHourlyReport(reportInput *sdk.GetReportInput) (*sd
 
 	// GroupBy 逗号分割
 	if len(reportInput.GroupBy) > 0 {
-		hourlyReportsGetOpts.GroupBy = optional.NewInterface(strings.Split(string(reportInput.GroupBy), ","))
+		groupby := reportInput.GroupBy[0]
+		if len(groupby) > 0 {
+			hourlyReportsGetOpts.GroupBy = optional.NewInterface(strings.Split(string(groupby), ","))
+		}
 	}
 
 	// OrderBy
@@ -304,4 +316,21 @@ func (t *AMSReportService) copyHourReportToOutput(date string, hourResponseData 
 		TotalNumber: hourResponseData.PageInfo.TotalNumber,
 		TotalPage:   hourResponseData.PageInfo.TotalPage,
 	}
+}
+
+func (t *AMSReportService) GetVideoReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
+		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+	}
+	reportInput.TimeGranularity = sdk.ReportTimeDaily
+	reportInput.AdLevel = sdk.LevelVideo
+	return t.getDailyReport(reportInput)
+}
+func (t *AMSReportService) GetImageReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+	if reportInput.BaseInput.AccountType != sdk.AccountTypeAMS {
+		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d", reportInput.BaseInput.AccountType, reportInput.BaseInput.AccountId)
+	}
+	reportInput.TimeGranularity = sdk.ReportTimeDaily
+	reportInput.AdLevel = sdk.LevelImage
+	return t.getDailyReport(reportInput)
 }

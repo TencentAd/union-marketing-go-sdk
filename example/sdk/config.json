@@ -1,0 +1,16 @@
+{
+  "db": {
+    "dsn": "sqlite.db",
+    "type": "sqlite"
+  },
+  "ams": {
+    "auth": {
+      "client_id": 0,
+      "client_secret": "",
+      "redirect_uri": "http://dev.ug.com/ams"
+    }
+  },
+  "http": {
+    "serve_address": ":80"
+  }
+}

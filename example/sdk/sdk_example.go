@@ -18,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Config 配置
 type Config struct {
 	AMS  *sdkConfig.Config `json:"ams"`
 	HTTP *HTTPConfig       `json:"http"`
@@ -26,6 +27,7 @@ type Config struct {
 
 var conf Config
 
+// HTTPConfig http配置
 type HTTPConfig struct {
 	ServeAddress string `json:"serve_address"`
 }
@@ -86,6 +88,14 @@ func main() {
 
 	amsImpl := ams.NewAMSService(conf.AMS)
 	manager.Register("ams", amsImpl)
+
+	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
+	if err != nil {
+		log.Errorf("failed to generate auth uri, err: %v", err)
+	} else {
+		log.Info(output.AuthURI)
+	}
+
 	serveAuthCallback("/ams", amsImpl, conf.AMS.Auth.RedirectUri)
 
 	if err := http.ListenAndServe(conf.HTTP.ServeAddress, nil); err != nil {

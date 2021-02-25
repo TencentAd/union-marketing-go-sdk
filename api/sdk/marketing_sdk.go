@@ -1,5 +1,6 @@
 package sdk
 
+// MarketingSDK 对Marketing API的抽象
 type MarketingSDK interface {
 	Auth // 授权接口
 	//ADDelivery
@@ -7,6 +8,7 @@ type MarketingSDK interface {
 	Report
 }
 
+// ADDelivery 广告投放接口
 type ADDelivery interface {
 	BudgetOperation
 	CampaignOperation
@@ -14,17 +16,19 @@ type ADDelivery interface {
 	CreativeOperation
 }
 
+// BudgetOperation 预算相关接口
 type BudgetOperation interface {
-	GetBudget(input interface{}) (interface{}, error)
-	UpdateBudget(input interface{}) (interface{}, error)
 }
 
+// CampaignOperation 推广计划相关接口
 type CampaignOperation interface {
 }
 
+// ADGroupOperation 广告组相关接口
 type ADGroupOperation interface {
 }
 
+// CreativeOperation 创意相关接口
 type CreativeOperation interface {
 }
 
@@ -38,7 +42,9 @@ type Material interface {
 	GetVideo()
 }
 
+// Report 报表相关接口
 type Report interface {
+	// GetReport 获取报表
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
 	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
 	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)

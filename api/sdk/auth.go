@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -41,17 +40,19 @@ type ProcessAuthCallbackOutput = AuthAccount
 
 // AuthAccount 授权账号输出
 type AuthAccount struct {
-	AccountUin           int64           `gorm:"column:account_uin"              json:"account_uin,omitempty"`
-	AccountId            int64           `gorm:"column:account_id;primaryKey"    json:"account_id,omitempty"`
-	ScopeList            StringList      `gorm:"column:scope_list"               json:"scope_list,omitempty"`
-	WechatAccountId      string          `gorm:"column:wechat_account_id"        json:"wechat_account_id,omitempty"`
-	AccountRoleType      AccountRoleType `gorm:"column:account_role_type"        json:"account_role_type,omitempty"`
-	AccountType          AccountType     `gorm:"column:account_type"             json:"account_type,omitempty"`
-	RoleType             RoleType        `gorm:"column:role_type"                json:"role_type,omitempty"`
-	AccessToken          string          `gorm:"column:access_token"             json:"access_token,omitempty"`
-	RefreshToken         string          `gorm:"column:refresh_token"            json:"refresh_token,omitempty"`
-	AccessTokenExpireAt  time.Time       `gorm:"column:access_token_expires_at"  json:"access_token_expires_at,omitempty"`
-	RefreshTokenExpireAt time.Time       `gorm:"column:refresh_token_expires_at" json:"refresh_token_expires_at,omitempty"`
+	Platform             MarketingPlatformType `gorm:"platform"                        json:"platform"`
+	ID                   string                `gorm:"column:id;primaryKey"            json:"id,omitempty"`
+	AccountUin           int64                 `gorm:"column:account_uin"              json:"account_uin,omitempty"`
+	AccountID            string                `gorm:"column:account_id"               json:"account_id,omitempty"`
+	ScopeList            StringList            `gorm:"column:scope_list"               json:"scope_list,omitempty"`
+	WechatAccountID      string                `gorm:"column:wechat_account_id"        json:"wechat_account_id,omitempty"`
+	AccountRoleType      AccountRoleType       `gorm:"column:account_role_type"        json:"account_role_type,omitempty"`
+	AccountType          AccountType           `gorm:"column:account_type"             json:"account_type,omitempty"`
+	RoleType             RoleType              `gorm:"column:role_type"                json:"role_type,omitempty"`
+	AccessToken          string                `gorm:"column:access_token"             json:"access_token,omitempty"`
+	RefreshToken         string                `gorm:"column:refresh_token"            json:"refresh_token,omitempty"`
+	AccessTokenExpireAt  time.Time             `gorm:"column:access_token_expires_at"  json:"access_token_expires_at,omitempty"`
+	RefreshTokenExpireAt time.Time             `gorm:"column:refresh_token_expires_at" json:"refresh_token_expires_at,omitempty"`
 
 	CreatedAt time.Time      `gorm:"column:created_at"      json:"-"`
 	UpdatedAt time.Time      `gorm:"column:updated_at"      json:"-"`
@@ -90,14 +91,47 @@ func value(v interface{}) (driver.Value, error) {
 	return string(bytes), err
 }
 
-// AuthAccount 授权账号的key
-func (account *AuthAccount) Key() string {
-	return strconv.FormatInt(account.AccountId, 10)
+// NeedRefreshToken 判断是否需要刷新token
+func (account *AuthAccount) NeedRefreshToken(f GetTokenRefreshTime) bool {
+	return time.Now().After(f(account))
 }
 
-// NeedRefreshToken 判断是否需要刷新token
-func (account *AuthAccount) NeedRefreshToken() bool {
-	now := time.Now()
-	return account.RefreshTokenExpireAt.Sub(now) <= time.Hour ||
-		account.AccessTokenExpireAt.Sub(now) <= time.Hour
+// GetTokenRefreshTimeDefault 获取账号更新时间，默认实现
+func GetRefreshTimeDefault(account *AuthAccount) time.Time {
+	return account.AccessTokenExpireAt
+}
+
+// GetTokenRefreshTime 获取账号的token更新时间
+type GetTokenRefreshTime func(account *AuthAccount) time.Time
+
+// RefreshToken
+type RefreshToken func(account *AuthAccount) (*RefreshTokenOutput, error)
+
+// RefreshTokenOutput 刷新token的输出
+type RefreshTokenOutput struct {
+	Platform             MarketingPlatformType `json:"platform"`
+	ID                   string                `json:"id,omitempty"`
+	AccessToken          string                `json:"access_token,omitempty"`
+	RefreshToken         string                `json:"refresh_token,omitempty"`
+	AccessTokenExpireAt  time.Time             `json:"access_token_expires_at,omitempty"`
+	RefreshTokenExpireAt time.Time             `json:"refresh_token_expires_at,omitempty"`
+}
+
+func UpdateToken(original *AuthAccount, out *RefreshTokenOutput) {
+	updateTime(&original.RefreshTokenExpireAt, out.RefreshTokenExpireAt)
+	updateTime(&original.AccessTokenExpireAt, out.AccessTokenExpireAt)
+	updateString(&original.RefreshToken, out.RefreshToken)
+	updateString(&original.AccessToken, out.AccessToken)
+}
+
+func updateTime(original *time.Time, refreshed time.Time) {
+	if refreshed.After(*original) {
+		*original = refreshed
+	}
+}
+
+func updateString(original *string, refreshed string) {
+	if refreshed != "" {
+		*original = refreshed
+	}
 }

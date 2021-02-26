@@ -13,9 +13,9 @@ func TestAuthAccount(t *testing.T) {
 
 	{
 		account := &sdk.AuthAccount{
-			AccountId:   1,
+			ID:          "1",
 			AccessToken: "a",
-			ScopeList: []string{"a"},
+			ScopeList:   []string{"a"},
 		}
 		assert.NoError(t, AuthAccountUpsert(db, account))
 	}
@@ -23,12 +23,12 @@ func TestAuthAccount(t *testing.T) {
 		account, err := AuthAccountGetAll(db)
 		assert.NoError(t, err)
 		assert.Len(t, account, 1)
-		assert.EqualValues(t, 1, account[0].AccountId)
+		assert.EqualValues(t, "1", account[0].ID)
 	}
 
 	{
 		account := &sdk.AuthAccount{
-			AccountId:   1,
+			ID:          "1",
 			AccessToken: "b",
 		}
 		assert.NoError(t, AuthAccountUpdate(db, account))
@@ -38,5 +38,11 @@ func TestAuthAccount(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, account, 1)
 		assert.EqualValues(t, "b", account[0].AccessToken)
+	}
+
+	{
+		account, err := AuthAccountTake(db, "1")
+		assert.NoError(t, err)
+		assert.EqualValues(t, "b", account.AccessToken)
 	}
 }

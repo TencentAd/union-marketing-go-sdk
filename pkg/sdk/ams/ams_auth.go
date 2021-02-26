@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
@@ -33,7 +34,8 @@ func NewAuthService(config *config.Config) *AuthService {
 		log.Errorf("failed to init AuthService, err: %v", err)
 	}
 
-	go s.refresh()
+	account.RegisterGetTokenRefreshTime(sdk.MarketingPlatformAMS, s.GetTokenRefreshTime)
+	account.RegisterRefreshToken(sdk.MarketingPlatformAMS, s.RefreshToken)
 
 	return s
 }
@@ -90,15 +92,17 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	// convert response
 	info := amsResp.AuthorizerInfo
 	authAccount := &sdk.AuthAccount{
-		AccountUin:           info.AccountUin,
-		AccountId:            info.AccountId,
-		ScopeList:            *info.ScopeList,
-		WechatAccountId:      info.WechatAccountId,
-		AccountRoleType:      AccountRoleTypeMapping[info.AccountRoleType],
-		AccountType:          AccountTypeMapping[info.AccountType],
-		RoleType:             RoleTypeMapping[info.RoleType],
-		AccessToken:          amsResp.AccessToken,
-		RefreshToken:         amsResp.RefreshToken,
+		ID:              formatAuthAccountID(info.AccountId),
+		Platform:        sdk.MarketingPlatformAMS,
+		AccountUin:      info.AccountUin,
+		AccountID:       strconv.FormatInt(info.AccountId, 10),
+		ScopeList:       *info.ScopeList,
+		WechatAccountID: info.WechatAccountId,
+		AccountRoleType: AccountRoleTypeMapping[info.AccountRoleType],
+		AccountType:     AccountTypeMapping[info.AccountType],
+		RoleType:        RoleTypeMapping[info.RoleType],
+		AccessToken:     amsResp.AccessToken,
+		RefreshToken:    amsResp.RefreshToken,
 		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
 		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 	}
@@ -123,38 +127,33 @@ func calcExpireAt(expireIn int64) time.Time {
 	return time.Now().Add(time.Second * time.Duration(expireIn))
 }
 
-func (s *AuthService) refresh() {
-	authConfig := s.config.Auth
-	for {
-		time.Sleep(10 * time.Second)
-		authAccount := account.GetAllAuthAccount()
-
-		for _, a := range authAccount {
-			if needRefreshToken(a) {
-				amsResp, _, err := s.amsSDKClient.Oauth().Token(
-					context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
-					&api.OauthTokenOpts{
-						RefreshToken: optional.NewString(a.RefreshToken),
-					})
-				if err != nil {
-					log.Errorf("failed to call refresh token api for account[%d]", a.AccountId)
-				} else {
-					if err = account.RefreshToken(&sdk.AuthAccount{
-						AccountId:           a.AccountId,
-						AccessToken:         amsResp.AccessToken,
-						AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
-					}); err != nil {
-						log.Errorf("failed to refresh account[%d] token", a.AccountId)
-					}
-				}
-			}
-		}
-	}
+// GetTokenRefreshTime
+// ams无法获取到refresh_token的失效时间，每次刷新时会更新，所以这里只判断access_token的失效时间
+func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
+	return account.AccessTokenExpireAt
 }
 
-// needRefreshToken 判断是否需要刷新token
-// ams无法获取到refresh_token的失效时间，每次刷新时会更新，所以这里只判断access_token的失效时间
-func needRefreshToken(account *sdk.AuthAccount) bool {
-	now := time.Now()
-	return account.AccessTokenExpireAt.Sub(now) <= time.Hour
+func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutput, error) {
+	authConfig := s.config.Auth
+
+	amsResp, _, err := s.amsSDKClient.Oauth().Token(
+		context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
+		&api.OauthTokenOpts{
+			RefreshToken: optional.NewString(acc.RefreshToken),
+		})
+	if err != nil {
+		log.Errorf("failed to call refresh token api for account[%d]", acc.AccountID)
+		return nil, err
+	}
+
+	return &sdk.RefreshTokenOutput{
+		ID:                  acc.ID,
+		AccessToken:         amsResp.AccessToken,
+		AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
+	}, nil
+}
+
+// formatAuthAccountID
+func formatAuthAccountID(accountID int64) string {
+	return fmt.Sprintf("%s:%d", sdk.MarketingPlatformAMS, accountID)
 }

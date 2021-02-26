@@ -59,11 +59,11 @@ func TestLockDB(t *testing.T) {
 
 	go func() {
 		err := db.Transaction(func(tx *gorm.DB) error {
-			assert.NoError(t, LockDB(tx, "tableName", 1))
+			assert.NoError(t, LockDB(tx, 1))
 
 			time.Sleep(2 * time.Second)
 
-			return UnlockDB(tx, "tableName", 1)
+			return UnlockDB(tx, 1)
 		})
 		assert.NoError(t, err)
 		wg.Done()
@@ -72,7 +72,7 @@ func TestLockDB(t *testing.T) {
 		err := db.Transaction(func(tx *gorm.DB) error {
 			time.Sleep(1 * time.Second)
 
-			return LockDB(tx, "tableName", 1)
+			return LockDB(tx, 1)
 		})
 		assert.Error(t, err)
 		wg.Done()

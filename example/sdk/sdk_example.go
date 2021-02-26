@@ -52,9 +52,6 @@ func Load(configFile ...string) error {
 		}
 	}
 
-	if err := account.Init(mysql.NewTokenStorage()); err != nil {
-		return fmt.Errorf("failed to init account")
-	}
 
 	return nil
 }
@@ -97,6 +94,10 @@ func main() {
 	}
 
 	serveAuthCallback("/ams", amsImpl, conf.AMS.Auth.RedirectUri)
+
+	if err := account.Init(mysql.NewTokenStorage(), mysql.NewRefreshLock()); err != nil {
+		log.Errorf("failed to init account, err: %v", err)
+	}
 
 	if err := http.ListenAndServe(conf.HTTP.ServeAddress, nil); err != nil {
 		log.Fatalf("While serving http request: %v", err)

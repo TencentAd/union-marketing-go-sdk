@@ -34,9 +34,9 @@ func RegisterRefreshToken(t sdk.MarketingPlatformType, f sdk.RefreshToken) {
 func isExpired(account *sdk.AuthAccount) bool {
 	f, ok := getTokenRefreshTimeMethods[account.Platform]
 	if ok {
-		return f(account).After(time.Now())
+		return time.Now().After(f(account))
 	} else {
-		return sdk.GetRefreshTimeDefault(account).After(time.Now())
+		return time.Now().After(sdk.GetRefreshTimeDefault(account))
 	}
 }
 

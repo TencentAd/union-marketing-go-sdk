@@ -11,6 +11,14 @@ const (
 	AccountRoleTypeBusinessManager AccountRoleType = "ACCOUNT_ROLE_TYPE_BUSINESS_MANAGER"
 )
 
+// AMSSystemType AMS的投放平台类型
+type AMSSystemType string
+const (
+	AMS AMSSystemType = "ams"
+	AMSWechat AMSSystemType="ams_wechat"
+)
+
+
 // AccountType : 账号类型
 type AccountType string
 

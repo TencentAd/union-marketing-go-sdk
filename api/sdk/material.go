@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+// ImageAddInput 图片请求参数
 type ImageAddInput struct {
 	BaseInput  BaseInput  `json:"base_input,omitempty"`  // 账户信息
 	UploadType UploadType `json:"upload_type,omitempty"` // 上传类型
@@ -13,6 +14,7 @@ type ImageAddInput struct {
 	Desc       string     `json:"desc,omitempty"`        // 图片文件描述
 }
 
+// UploadType 上传类型
 type UploadType string
 
 const (
@@ -20,6 +22,7 @@ const (
 	UPLOAD_TYPE_BYTES UploadType = "UPLOAD_TYPE_BYTES"
 )
 
+// ImagesAddOutput 上传图片返回结果
 type ImagesAddOutput struct {
 	ImageId     string    `json:"image_id,omitempty"`
 	PreviewUrl  string    `json:"preview_url,omitempty"`
@@ -36,32 +39,36 @@ type ImageType string
 
 // List of ImageType
 const (
-	IMAGE_TYPE_GIF ImageType= "IMAGE_TYPE_GIF" // GIF 类型
-	IMAGE_TYPE_JPG ImageType= "IMAGE_TYPE_JPG" //JPG 类型
-	IMAGE_TYPE_PNG ImageType= "IMAGE_TYPE_PNG" //PNG 类型
-	IMAGE_TYPE_SWF ImageType= "IMAGE_TYPE_SWF" // SWF 类型
+	IMAGE_TYPE_GIF ImageType = "IMAGE_TYPE_GIF" // GIF 类型
+	IMAGE_TYPE_JPG ImageType = "IMAGE_TYPE_JPG" //JPG 类型
+	IMAGE_TYPE_PNG ImageType = "IMAGE_TYPE_PNG" //PNG 类型
+	IMAGE_TYPE_SWF ImageType = "IMAGE_TYPE_SWF" // SWF 类型
 )
 
+// MaterialGetInput 获取物料请求结构
 type MaterialGetInput struct {
-	BaseInput BaseInput   `json:"base_input,omitempty"` // 账户信息
-	Filtering interface{} `json:"filtering,omitempty"`  // 过滤信息
-	Page      int64       `json:"page,omitempty"`       // 搜索页码，默认值：1 最小值 1，最大值 99999
-	PageSize  int64       `json:"page_size,omitempty"`  // 一页显示的数据条数，默认值：10 最小值 1，最大值 1000
+	BaseInput BaseInput          `json:"base_input,omitempty"` // 账户信息
+	Filtering *MaterialFiltering `json:"filtering,omitempty"`  // 过滤信息
+	Page      int64              `json:"page,omitempty"`       // 搜索页码，默认值：1 最小值 1，最大值 99999
+	PageSize  int64              `json:"page_size,omitempty"`  // 一页显示的数据条数，默认值：10。最小值 1，最大值 500
 }
 
+// MaterialFiltering 获取物料过滤参数结构
 type MaterialFiltering struct {
-	MaterialIds      []string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
-	Width            int64    `json:"width,omitempty"`              // 图片宽度
-	Height           int64    `json:"height,omitempty"`             // 图片高度
-	CreatedStartTime string   `json:"created_start_time,omitempty"` // 根据视频上传时间进行过滤的起始时间，与end_time搭配使用，格式：yyyy-mm-dd
-	CreatedEndTime   string   `json:"created_end_time,omitempty"`   // 根据视频上传时间进行过滤的截止时间，与start_time搭配使用，格式：yyyy-mm-dd
+	MaterialIds      *[]string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
+	Width            int64     `json:"width,omitempty"`              // 图片宽度
+	Height           int64     `json:"height,omitempty"`             // 图片高度
+	CreatedStartTime string    `json:"created_start_time,omitempty"` // 根据视频上传时间进行过滤的起始时间，与end_time搭配使用，格式：yyyy-mm-dd
+	CreatedEndTime   string    `json:"created_end_time,omitempty"`   // 根据视频上传时间进行过滤的截止时间，与start_time搭配使用，格式：yyyy-mm-dd
 }
 
+// ImageGetOutput 获取图片结构
 type ImageGetOutput struct {
 	List     *[]ImageGetOutputStruct `json:"list,omitempty"`
 	PageInfo *PageConf               `json:"page_info,omitempty"`
 }
 
+// ImageGetOutput 图片信息
 type ImageGetOutputStruct struct {
 	ImageId          string             `json:"image_id,omitempty"`           // 图片 id
 	Width            int64              `json:"width,omitempty"`              // 图片宽度，单位 px
@@ -77,6 +84,7 @@ type ImageGetOutputStruct struct {
 	LastModifiedTime int64              `json:"last_modified_time,omitempty"` // 最后修改时间（时间戳）
 }
 
+// MaterialSourceType 物料来源
 type MaterialSourceType string
 
 // List of SourceType
@@ -90,11 +98,13 @@ const (
 	MaterialSourceType_TCC             MaterialSourceType = "SOURCE_TYPE_TCC"             // 腾讯创意订制平台制作，source_reference_id（素材来源关联 id）为 TCC 订单 id
 )
 
+// VideoGetOutput 视频获取
 type VideoGetOutput struct {
 	List     *[]VideoGetOutputStruct `json:"list,omitempty"`
 	PageInfo *PageConf               `json:"page_info,omitempty"`
 }
 
+// VideoGetOutputStruct 视频信息结构
 type VideoGetOutputStruct struct {
 	VideoId                  int64              `json:"video_id,omitempty"`
 	Width                    int64              `json:"width,omitempty"`
@@ -130,6 +140,7 @@ type VideoGetOutputStruct struct {
 	OwnerAccountId           string             `json:"owner_account_id,omitempty"`
 }
 
+// VideoType 视频类型
 type VideoType string
 
 const (
@@ -142,21 +153,24 @@ const (
 	VideoType_VIDEO_TYPE_MOV VideoType = "VIDEO_TYPE_MOV"
 )
 
+// SystemStatus 视频转码状态
 type SystemStatus string
 
 const (
-	Video_STATUS_VALID   SystemStatus = "MEDIA_STATUS_VALID"  // 有效
-	Video_STATUS_PENDING SystemStatus = "MEDIA_STATUS_PENDING"//待处理
-	Video_STATUS_ERROR   SystemStatus = "MEDIA_STATUS_ERROR"//异常
+	Video_STATUS_VALID   SystemStatus = "MEDIA_STATUS_VALID"   // 有效
+	Video_STATUS_PENDING SystemStatus = "MEDIA_STATUS_PENDING" //待处理
+	Video_STATUS_ERROR   SystemStatus = "MEDIA_STATUS_ERROR"   //异常
 )
 
+// VideoAddInput 增加视频请求结构
 type VideoAddInput struct {
-	BaseInput  BaseInput  `json:"base_input,omitempty"`  // 账户信息
-	Signature  string     `json:"signature,omitempty"`   // 视频文件签名
-	File       *os.File   `json:"file,omitempty"`        // 被上传的视频文件，视频二进制流，支持上传的视频文件类型为：mp4、mov、avi
-	Desc       string     `json:"desc,omitempty"`        // 视频文件描述
+	BaseInput BaseInput `json:"base_input,omitempty"` // 账户信息
+	Signature string    `json:"signature,omitempty"`  // 视频文件签名
+	File      *os.File  `json:"file,omitempty"`       // 被上传的视频文件，视频二进制流，支持上传的视频文件类型为：mp4、mov、avi
+	Desc      string    `json:"desc,omitempty"`       // 视频文件描述
 }
 
+// VideoAddOutput 增加视频返回信息
 type VideoAddOutput struct {
-	VideoId  int64 `json:"video_id,omitempty` // 视频id
+	VideoId int64 `json:"video_id,omitempty` // 视频id
 }

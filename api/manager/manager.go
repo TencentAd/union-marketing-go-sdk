@@ -69,6 +69,10 @@ func call(impl sdk.MarketingSDK, method string, input string) (string, error) {
 		return "", fmt.Errorf("method output length not 2")
 	}
 
+	if !values[1].IsNil() {
+		return "", values[1].Interface().(error)
+	}
+
 	output, err := json.Marshal(values[0].Interface())
 	if err != nil {
 		return "", err

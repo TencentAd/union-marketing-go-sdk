@@ -32,9 +32,11 @@ type ADGroupOperation interface {
 type CreativeOperation interface {
 }
 
+// Account 账户管理接口
 type Account interface {
 }
 
+// Material 物料管理接口
 type Material interface {
 	AddImage()
 	GetImage()
@@ -46,6 +48,6 @@ type Material interface {
 type Report interface {
 	// GetReport 获取报表
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	//GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	//GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

@@ -5,6 +5,7 @@ type MarketingPlatformType string
 
 const (
 	MarketingPlatformAMS = "ams"
+	MarketingPlatformAMSWechat = "ams_wechat"
 	MarketingPlatformOceanengine = "oceanengine"
 )
 

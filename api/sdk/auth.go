@@ -48,11 +48,13 @@ type AuthAccount struct {
 	WechatAccountID      string                `gorm:"column:wechat_account_id"        json:"wechat_account_id,omitempty"`
 	AccountRoleType      AccountRoleType       `gorm:"column:account_role_type"        json:"account_role_type,omitempty"`
 	AccountType          AccountType           `gorm:"column:account_type"             json:"account_type,omitempty"`
+	AMSSystemType		AMSSystemType		   `gorm:"column:ams_system_type"          json:"ams_system_type,omitempty"`
 	RoleType             RoleType              `gorm:"column:role_type"                json:"role_type,omitempty"`
 	AccessToken          string                `gorm:"column:access_token"             json:"access_token,omitempty"`
 	RefreshToken         string                `gorm:"column:refresh_token"            json:"refresh_token,omitempty"`
 	AccessTokenExpireAt  time.Time             `gorm:"column:access_token_expires_at"  json:"access_token_expires_at,omitempty"`
 	RefreshTokenExpireAt time.Time             `gorm:"column:refresh_token_expires_at" json:"refresh_token_expires_at,omitempty"`
+
 
 	CreatedAt time.Time      `gorm:"column:created_at"      json:"-"`
 	UpdatedAt time.Time      `gorm:"column:updated_at"      json:"-"`

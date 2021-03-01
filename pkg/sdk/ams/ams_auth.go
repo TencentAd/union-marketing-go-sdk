@@ -91,18 +91,32 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 
 	// convert response
 	info := amsResp.AuthorizerInfo
+
+	var accid string
+	var amsSystemType sdk.AMSSystemType
+	if info.AccountId > 0 {
+		accid = strconv.FormatInt(info.AccountId, 10)
+		amsSystemType = sdk.AMS
+	} else if len(info.WechatAccountId) > 0 {
+		accid = info.WechatAccountId
+		amsSystemType = sdk.AMSWechat
+	} else {
+		return nil, fmt.Errorf("invalid accid")
+	}
+
 	authAccount := &sdk.AuthAccount{
-		ID:              formatAuthAccountID(info.AccountId),
-		Platform:        sdk.MarketingPlatformAMS,
-		AccountUin:      info.AccountUin,
-		AccountID:       strconv.FormatInt(info.AccountId, 10),
-		ScopeList:       *info.ScopeList,
-		WechatAccountID: info.WechatAccountId,
-		AccountRoleType: AccountRoleTypeMapping[info.AccountRoleType],
-		AccountType:     AccountTypeMapping[info.AccountType],
-		RoleType:        RoleTypeMapping[info.RoleType],
-		AccessToken:     amsResp.AccessToken,
-		RefreshToken:    amsResp.RefreshToken,
+		ID:                   formatAuthAccountID(accid, amsSystemType),
+		Platform:             sdk.MarketingPlatformAMS,
+		AccountUin:           info.AccountUin,
+		AccountID:            strconv.FormatInt(info.AccountId, 10),
+		ScopeList:            *info.ScopeList,
+		WechatAccountID:      info.WechatAccountId,
+		AccountRoleType:      AccountRoleTypeMapping[info.AccountRoleType],
+		AccountType:          AccountTypeMapping[info.AccountType],
+		AMSSystemType:        amsSystemType,
+		RoleType:             RoleTypeMapping[info.RoleType],
+		AccessToken:          amsResp.AccessToken,
+		RefreshToken:         amsResp.RefreshToken,
 		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
 		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 	}
@@ -142,7 +156,7 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 			RefreshToken: optional.NewString(acc.RefreshToken),
 		})
 	if err != nil {
-		log.Errorf("failed to call refresh token api for account[%d]", acc.AccountID)
+		log.Errorf("failed to call refresh token api for account[%s]", acc.AccountID)
 		return nil, err
 	}
 
@@ -154,6 +168,6 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 }
 
 // formatAuthAccountID
-func formatAuthAccountID(accountID int64) string {
-	return fmt.Sprintf("%s:%d", sdk.MarketingPlatformAMS, accountID)
+func formatAuthAccountID(accountID string, systemType sdk.AMSSystemType) string {
+	return fmt.Sprintf("%s:%s:%s", sdk.MarketingPlatformAMS, systemType, accountID)
 }

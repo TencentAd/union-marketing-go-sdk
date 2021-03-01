@@ -48,6 +48,6 @@ type Material interface {
 type Report interface {
 	// GetReport 获取报表
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	//GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	//GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

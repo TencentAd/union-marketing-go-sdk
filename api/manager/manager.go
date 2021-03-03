@@ -7,6 +7,9 @@ import (
 	"reflect"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ams"
+	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ocean_engine"
 )
 
 var (
@@ -15,22 +18,31 @@ var (
 
 func init() {
 	instance = &manager{
-		impl:           make(map[sdk.MarketingPlatformType]sdk.MarketingSDK),
+		impl: make(map[sdk.MarketingPlatformType]sdk.MarketingSDK),
 	}
 }
 
 type manager struct {
-	impl           map[sdk.MarketingPlatformType]sdk.MarketingSDK
-	serveMux       *http.ServeMux
+	impl     map[sdk.MarketingPlatformType]sdk.MarketingSDK
+	serveMux *http.ServeMux
 }
 
 // Register 注册对应平台的实现
-func Register(platform sdk.MarketingPlatformType, impl sdk.MarketingSDK) {
-	instance.impl[platform] = impl
+func Register(platform sdk.MarketingPlatformType, sconfig *sdkconfig.Config) error {
+	switch platform {
+	case sdk.AMS:
+		instance.impl[platform] = ams.NewAMSService(sconfig)
+		return nil
+	case sdk.OceanEngine:
+		instance.impl[platform] = ocean_engine.NewOceanEngineService(sconfig)
+		return nil
+	default:
+		return fmt.Errorf("not support platform = %s", platform)
+	}
 }
 
 // GetPlatformList 获取注册的平台列表
-func GetPlatformList() []sdk.MarketingPlatformType{
+func GetPlatformList() []sdk.MarketingPlatformType {
 	keys := make([]sdk.MarketingPlatformType, 0, len(instance.impl))
 	for k := range instance.impl {
 		keys = append(keys, k)
@@ -39,8 +51,11 @@ func GetPlatformList() []sdk.MarketingPlatformType{
 }
 
 // GetImpl 获取对应平台的实现
-func GetImpl(platform sdk.MarketingPlatformType) sdk.MarketingSDK {
-	return instance.impl[platform]
+func GetImpl(platform sdk.MarketingPlatformType) (sdk.MarketingSDK, error) {
+	if instance.impl[platform] == nil {
+		return nil,fmt.Errorf("not register platform = %s", platform)
+	}
+	return instance.impl[platform], nil
 }
 
 // Call 调用对应的方法, 方便web直接传入string，直接调用

@@ -2,6 +2,7 @@ package ocean_engine
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,28 +12,29 @@ import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
-	"github.com/antihax/optional"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/http_tools"
 	log "github.com/sirupsen/logrus"
-	"github.com/tencentad/marketing-api-go-sdk/pkg/api"
 )
 
 // HTTPServer 登录授权服务
 type AuthService struct {
-	config       *config.Config
+	config     *config.Config
+	httpClinet *http_tools.HttpClient
 }
 
 // NewAuthService
 func NewAuthService(config *config.Config) *AuthService {
 	s := &AuthService{
-		config: config,
+		config:     config,
+		httpClinet: http_tools.Init(config.HttpConfig),
 	}
 
 	if err := s.init(); err != nil {
 		log.Errorf("failed to init AuthService, err: %v", err)
 	}
 
-	account.RegisterGetTokenRefreshTime(sdk.MarketingPlatformOceanEngine, s.GetTokenRefreshTime)
-	account.RegisterRefreshToken(sdk.MarketingPlatformOceanEngine, s.RefreshToken)
+	account.RegisterGetTokenRefreshTime(sdk.OceanEngine, s.GetTokenRefreshTime)
+	account.RegisterRefreshToken(sdk.OceanEngine, s.RefreshToken)
 
 	return s
 }
@@ -57,8 +59,30 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	}, nil
 }
 
+type PostBody struct {
+	AppId     int64  `json:"app_id"`
+	Secret    string `json:"secret"`
+	GrantType string `json:"grant_type"`
+	AuthCode  string `json:"auth_code"`
+}
+
+type Data struct {
+	AccessToken           string  `json:"access_token"`
+	ExpiresIn             int64   `json:"expires_in"`
+	RefreshToken          string  `json:"refresh_token"`
+	RefreshTokenExpiresIn int64   `json:"refresh_token_expires_in"`
+	AdvertiserIds         []int64 `json:"advertiser_ids"`
+}
+
+type AuthReponse struct {
+	Code      int    `json:"app_id"`
+	Message   string `json:"message"`
+	Data      *Data  `json:data`
+	RequestId string `json:request_id`
+}
+
 // ProcessAuthCallback implement Auth
-func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput, error) {
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*[]sdk.ProcessAuthCallbackOutput, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ocean engine config")
@@ -69,63 +93,61 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		return nil, err
 	}
 
-	amsResp, _, err := s.amsSDKClient.Oauth().Token(
-		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
-		&api.OauthTokenOpts{
-			AuthorizationCode: optional.NewString(authCode),
-			RedirectUri:       optional.NewString(authConf.RedirectUri),
-		})
+	method := "POST"
+	// create path and map variables
+	path := s.httpClinet.Config.BasePath + "/oauth2/access_token/"
+	postBody := PostBody{
+		AppId:     s.config.Auth.ClientID,
+		Secret:    s.config.Auth.ClientSecret,
+		GrantType: "auth_code",
+		AuthCode:  authCode,
+	}
+	postParams, _ := json.Marshal(postBody)
+
+	headerparams := make(map[string]string)
+	headerparams["Content-Type"] = "application/json"
+	headerparams["Accept"] = "application/json"
+
+	request, err := s.httpClinet.PrepareRequest(context.Background(), path, method, postParams, headerparams,
+		nil, nil, "", nil, "")
 	if err != nil {
 		return nil, err
 	}
 
-	if amsResp.AuthorizerInfo == nil {
-		return nil, fmt.Errorf("no authorizer info returned")
+	authReponse := &AuthReponse{}
+	resp_err := s.httpClinet.DoProcess(request, authReponse)
+	if resp_err != nil  {
+		return nil, resp_err
+	}
+	if authReponse.Code != 0 {
+		fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authReponse.Code, authReponse.Message,
+			authReponse.RequestId)
 	}
 
-	// convert response
-	info := amsResp.AuthorizerInfo
-
-	var accid string
-	var amsSystemType sdk.AMSSystemType
-	if info.AccountId > 0 {
-		accid = strconv.FormatInt(info.AccountId, 10)
-		amsSystemType = sdk.AMS_EQQ
-	} else if len(info.WechatAccountId) > 0 {
-		accid = info.WechatAccountId
-		amsSystemType = sdk.AMS_MP
-	} else {
-		return nil, fmt.Errorf("invalid accid")
+	resList := make([]sdk.ProcessAuthCallbackOutput, 0, len(authReponse.Data.AdvertiserIds))
+	for i := 0; i < len(authReponse.Data.AdvertiserIds) ; i++ {
+		accid := strconv.FormatInt(authReponse.Data.AdvertiserIds[i], 10)
+		authAccount := &sdk.AuthAccount{
+			ID:                   formatAuthAccountID(accid),
+			AccountID:            accid,
+			AccessToken:          authReponse.Data.AccessToken,
+			AccessTokenExpireAt:  calcExpireAt(authReponse.Data.ExpiresIn),
+			RefreshToken:         authReponse.Data.RefreshToken,
+			RefreshTokenExpireAt: calcExpireAt(authReponse.Data.RefreshTokenExpiresIn),
+		}
+		if err = account.Insert(authAccount); err != nil {
+			return nil, err
+		}
+		resList = append(resList, *authAccount)
 	}
-
-	authAccount := &sdk.AuthAccount{
-		ID:                   formatAuthAccountID(accid, amsSystemType),
-		Platform:             sdk.MarketingPlatformAMS,
-		AccountUin:           info.AccountUin,
-		AccountID:            strconv.FormatInt(info.AccountId, 10),
-		ScopeList:            *info.ScopeList,
-		WechatAccountID:      info.WechatAccountId,
-		AccountRoleType:      AccountRoleTypeMapping[info.AccountRoleType],
-		AccountType:          AccountTypeMapping[info.AccountType],
-		AMSSystemType:        amsSystemType,
-		RoleType:             RoleTypeMapping[info.RoleType],
-		AccessToken:          amsResp.AccessToken,
-		RefreshToken:         amsResp.RefreshToken,
-		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
-		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
-	}
-
-	if err = account.Insert(authAccount); err != nil {
-		return nil, err
-	}
-	return authAccount, nil
+	return &resList, nil
 }
 
 func (s *AuthService) getAuthCode(req *http.Request) (string, error) {
 	query := req.URL.Query()
-	authCode := query.Get("authorization_code")
+	authCode := query.Get("auth_code")
 	if authCode == "" {
-		return "", fmt.Errorf("'authorization_code' parameter not exist")
+		return "", fmt.Errorf("'auth_code' parameter not exist")
 	}
 	return authCode, nil
 }
@@ -143,7 +165,7 @@ func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
 
 func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutput, error) {
 	//authConfig := s.config.Auth
-	//
+
 	//amsResp, _, err := s.amsSDKClient.Oauth().Token(
 	//	context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
 	//	&api.OauthTokenOpts{
@@ -159,10 +181,10 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 	//	AccessToken:         amsResp.AccessToken,
 	//	AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
 	//}, nil
-	return nil,nil
+	return nil, nil
 }
 
 // formatAuthAccountID
-func formatAuthAccountID(accountID string, systemType sdk.AMSSystemType) string {
-	return fmt.Sprintf("%s:%s:%s", sdk.MarketingPlatformAMS, systemType, accountID)
+func formatAuthAccountID(accountID string) string {
+	return fmt.Sprintf("%s:%s", sdk.OceanEngine, accountID)
 }

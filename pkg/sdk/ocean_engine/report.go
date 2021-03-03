@@ -6,6 +6,6 @@ import "git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 type OceanEngineReportService struct {
 }
 
-func (t *OceanEngineService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
+func (t *OceanEngineReportService) GetReport(reportInput *sdk.GetReportInput) (*sdk.GetReportOutput, error) {
 	panic("implement me")
 }

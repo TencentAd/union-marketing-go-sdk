@@ -60,10 +60,11 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 }
 
 type PostBody struct {
-	AppId     int64  `json:"app_id"`
-	Secret    string `json:"secret"`
-	GrantType string `json:"grant_type"`
-	AuthCode  string `json:"auth_code"`
+	AppId        int64  `json:"app_id"`
+	Secret       string `json:"secret"`
+	GrantType    string `json:"grant_type"`
+	AuthCode     string `json:"auth_code,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
 type Data struct {
@@ -81,16 +82,10 @@ type AuthReponse struct {
 	RequestId string `json:request_id`
 }
 
-// ProcessAuthCallback implement Auth
-func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*[]sdk.ProcessAuthCallbackOutput, error) {
+func (s *AuthService) getToken(is_fresh bool, val string) (*AuthReponse, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ocean engine config")
-	}
-
-	authCode, err := s.getAuthCode(input.AuthCallback)
-	if err != nil {
-		return nil, err
 	}
 
 	method := "POST"
@@ -100,7 +95,11 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		AppId:     s.config.Auth.ClientID,
 		Secret:    s.config.Auth.ClientSecret,
 		GrantType: "auth_code",
-		AuthCode:  authCode,
+	}
+	if is_fresh {
+		postBody.RefreshToken = val
+	} else {
+		postBody.AuthCode = val
 	}
 	postParams, _ := json.Marshal(postBody)
 
@@ -116,7 +115,18 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 
 	authReponse := &AuthReponse{}
 	resp_err := s.httpClinet.DoProcess(request, authReponse)
-	if resp_err != nil  {
+	return authReponse, resp_err
+}
+
+// ProcessAuthCallback implement Auth
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) ([]*sdk.ProcessAuthCallbackOutput,
+	error) {
+	authCode, err := s.getAuthCode(input.AuthCallback)
+	if err != nil {
+		return nil, err
+	}
+	authReponse, resp_err := s.getToken(false, authCode)
+	if resp_err != nil {
 		return nil, resp_err
 	}
 	if authReponse.Code != 0 {
@@ -124,8 +134,8 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 			authReponse.RequestId)
 	}
 
-	resList := make([]sdk.ProcessAuthCallbackOutput, 0, len(authReponse.Data.AdvertiserIds))
-	for i := 0; i < len(authReponse.Data.AdvertiserIds) ; i++ {
+	resList := make([]*sdk.ProcessAuthCallbackOutput, 0, len(authReponse.Data.AdvertiserIds))
+	for i := 0; i < len(authReponse.Data.AdvertiserIds); i++ {
 		accid := strconv.FormatInt(authReponse.Data.AdvertiserIds[i], 10)
 		authAccount := &sdk.AuthAccount{
 			ID:                   formatAuthAccountID(accid),
@@ -138,9 +148,9 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		if err = account.Insert(authAccount); err != nil {
 			return nil, err
 		}
-		resList = append(resList, *authAccount)
+		resList = append(resList, authAccount)
 	}
-	return &resList, nil
+	return resList, nil
 }
 
 func (s *AuthService) getAuthCode(req *http.Request) (string, error) {
@@ -164,24 +174,22 @@ func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
 }
 
 func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutput, error) {
-	//authConfig := s.config.Auth
+	authReponse, resp_err := s.getToken(true, acc.RefreshToken)
+	if resp_err != nil {
+		return nil, resp_err
+	}
+	if authReponse.Code != 0 {
+		fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authReponse.Code, authReponse.Message,
+			authReponse.RequestId)
+	}
 
-	//amsResp, _, err := s.amsSDKClient.Oauth().Token(
-	//	context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
-	//	&api.OauthTokenOpts{
-	//		RefreshToken: optional.NewString(acc.RefreshToken),
-	//	})
-	//if err != nil {
-	//	log.Errorf("failed to call refresh token api for account[%s]", acc.AccountID)
-	//	return nil, err
-	//}
-	//
-	//return &sdk.RefreshTokenOutput{
-	//	ID:                  acc.ID,
-	//	AccessToken:         amsResp.AccessToken,
-	//	AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
-	//}, nil
-	return nil, nil
+	return &sdk.RefreshTokenOutput{
+		ID:                   acc.ID,
+		AccessToken:          authReponse.Data.AccessToken,
+		AccessTokenExpireAt:  calcExpireAt(authReponse.Data.ExpiresIn),
+		RefreshToken:         authReponse.Data.RefreshToken,
+		RefreshTokenExpireAt: calcExpireAt(authReponse.Data.RefreshTokenExpiresIn),
+	}, nil
 }
 
 // formatAuthAccountID

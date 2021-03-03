@@ -12,7 +12,6 @@ import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/define"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account/mysql"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ams"
 	sdkConfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/orm"
 	log "github.com/sirupsen/logrus"
@@ -20,9 +19,10 @@ import (
 
 // Config 配置
 type Config struct {
-	AMS  *sdkConfig.Config `json:"ams"`
-	HTTP *HTTPConfig       `json:"http"`
-	DB   *orm.Option       `json:"db"`
+	AMS         *sdkConfig.Config `json:"ams"`
+	OceanEngine *sdkConfig.Config `json:"ocean_engine"`
+	HTTP        *HTTPConfig       `json:"http"`
+	DB          *orm.Option       `json:"db"`
 }
 
 var conf Config
@@ -57,7 +57,7 @@ func Load(configFile ...string) error {
 // serveAuthCallback 提供http接口，在用户授权后获取token信息
 func serveAuthCallback(pattern string, impl sdk.MarketingSDK, redirectUrl string) {
 	http.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
-		authAccount, err := impl.ProcessAuthCallback(&sdk.ProcessAuthCallbackInput{
+		authAccountList, err := impl.ProcessAuthCallback(&sdk.ProcessAuthCallbackInput{
 			AuthCallback: req,
 			RedirectUri:  redirectUrl,
 		})
@@ -68,7 +68,7 @@ func serveAuthCallback(pattern string, impl sdk.MarketingSDK, redirectUrl string
 		resp := &httpx.Response{
 			Code:    0,
 			Message: define.Success,
-			Data:    authAccount,
+			Data:    authAccountList,
 		}
 		httpx.ServerResponse(w, resp)
 	})
@@ -81,8 +81,8 @@ func serveCall(pattern string) {
 		method := query["method"][0]
 		input := query["input"][0]
 
-		fmt.Println("method:",method)
-		fmt.Println("input:",input)
+		fmt.Println("method:", method)
+		fmt.Println("input:", input)
 		response, err := manager.Call("ams", method, input)
 		if err != nil {
 			httpx.ServeErrorResponse(w, err)
@@ -104,8 +104,8 @@ func main() {
 		log.Fatalf("failed to load config, err: %v", err)
 	}
 
-	amsImpl := ams.NewAMSService(conf.AMS)
-	manager.Register(sdk.AMS, amsImpl)
+	manager.Register(sdk.AMS, conf.AMS)
+	amsImpl, err := manager.GetImpl(sdk.AMS)
 
 	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
 	if err != nil {
@@ -117,6 +117,23 @@ func main() {
 	serveAuthCallback("/ams", amsImpl, conf.AMS.Auth.RedirectUri)
 	serveCall("/call")
 
+	// OceanEngine
+	manager.Register(sdk.OceanEngine, conf.OceanEngine)
+	oceanEgineImpl, err := manager.GetImpl(sdk.OceanEngine)
+	if err != nil {
+		log.Errorf("failed to get platfrom service, platfrom = %s err: %v", sdk.OceanEngine, err)
+	}
+
+	oceanengine_output, err := oceanEgineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.OceanEngine.Auth.
+		RedirectUri})
+	if err != nil {
+		log.Errorf("failed to generate auth uri, err: %v", err)
+	} else {
+		log.Info(oceanengine_output.AuthURI)
+	}
+
+	serveAuthCallback("/ocean_engine", oceanEgineImpl, oceanEgineImpl.GetConfig().Auth.RedirectUri)
+
 	if err := account.Init(mysql.NewTokenStorage(), mysql.NewRefreshLock()); err != nil {
 		log.Errorf("failed to init account, err: %v", err)
 	}
@@ -124,4 +141,5 @@ func main() {
 	if err := http.ListenAndServe(conf.HTTP.ServeAddress, nil); err != nil {
 		log.Fatalf("While serving http request: %v", err)
 	}
+
 }

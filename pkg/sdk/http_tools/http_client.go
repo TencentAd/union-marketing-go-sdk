@@ -10,122 +10,100 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
-	"time"
 
-	"github.com/tencentad/marketing-api-go-sdk/pkg/config"
-	"golang.org/x/oauth2"
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	jsonCheck = regexp.MustCompile("(?i:(?:application|text)/json)")
+	xmlCheck  = regexp.MustCompile("(?i:(?:application|text)/xml)")
 )
 
 // HttpClient
 type HttpClient struct {
 	client *http.Client
 	Config *HttpConfig
+}
 
-	//
-	Ctx context.Context
-	Method string
-	Path   string
-	HeaderParams map[string]string
-	QueryParams map[string]string
-	PostBody interface{}
-	formParams map[string]string
-	FileName string
-	FileBytes []byte
-	FileKey string
+func Init(config *HttpConfig) *HttpClient {
+	return &HttpClient{
+		client: &http.Client{},
+		Config: config,
+	}
 }
 
 // DoProcess 发送请求
-func (t *HttpClient) DoProcess() (string, error) {
-	// init http config
-	t.setHttpConfig()
-	// make request
-	request, err := t.prepareRequest()
-	//r, err := t.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams,
-	//	localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes, localVarFileKey)
-	response, err := t.client.Do(request)
+func (t *HttpClient) DoProcess(request *http.Request, response interface{}) error {
+	resp, err := t.client.Do(request)
+	// print http info
+	if req_bytes, err := httputil.DumpRequestOut(request, true); err == nil {
+		log.Info("OceanEngine Request Host:" + request.URL.Host + "\n")
+		log.Info("Request:", string(req_bytes), "\n")
+	}
+	if res_bytes, err := httputil.DumpResponse(resp, true); err == nil {
+		log.Info("OceanEngine response: ", string(res_bytes), "\n")
+	}
 	if err != nil || response == nil {
-		return "", err
+		return err
 	}
 
-	localVarBody, err := ioutil.ReadAll(response.Body)
-	defer response.Body.Close()
+	localVarBody, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	if response.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		return string(localVarBody), nil
+	if resp.StatusCode < 300 {
+		err = decode(response, localVarBody, request.Header.Get("Content-Type"))
+		if err == nil {
+			return nil
+		}
+		return err
 	}
 
-	if response.StatusCode >= 300 {
-		return "", fmt.Errorf("http response: code = %d, body = %s", response.StatusCode, string(localVarBody))
-	}
-}
+	return fmt.Errorf("http response: code = %d, body = %s", resp.StatusCode, string(localVarBody))
 
-func (t *HttpClient) setHttpConfig() {
-	t.client = &http.Client{
-		Timeout: time.Duration(t.Config.Timeout),
-	}
-	// set default Content-Type
-	if len(t.HeaderParams["Content-Type"]) == 0 {
-		t.HeaderParams["Content-Type"] = "text/plain"
-	}
-
-	// set default Accept
-	if len(t.HeaderParams["Accept"]) == 0 {
-		t.HeaderParams["Accept"] = "application/json"
-	}
-}
-
-func (t *HttpClient) SetMethod(method string) {
-	t.Method = strings.ToUpper("method")
-}
-
-func (t *HttpClient) getHttpPath() string {
-	path := t.Config.BasePath
-	if len(t.Config.apiVersion) > 0 {
-		path = path + "/" + t.Config.apiVersion
-	}
-	return path + "/" + t.Method
-}
-
-func (t *HttpClient) AddHeaderParam (key string, value string) {
-	t.HeaderParams[key] = value
-}
-
-func (t *HttpClient) AddQueryParam (key string, value string) {
-	t.QueryParams[key] = value
 }
 
 // prepareRequest build the request
-func (t *HttpClient) prepareRequest() (request *http.Request, err error) {
+func (t *HttpClient) PrepareRequest(
+	ctx context.Context,
+	path string, method string,
+	postBody interface{},
+	headerParams map[string]string,
+	queryParams url.Values,
+	formParams url.Values,
+	fileName string,
+	fileBytes []byte,
+	fileKey string) (request *http.Request, err error) {
 
 	var body *bytes.Buffer
 
 	// Detect postBody type and post.
-	if t.PostBody != nil {
-		contentType := t.HeaderParams["Content-Type"]
+	if postBody != nil {
+		contentType := headerParams["Content-Type"]
 		if contentType == "" {
-			contentType = detectContentType(t.PostBody)
-			t.HeaderParams["Content-Type"] = contentType
+			contentType = detectContentType(postBody)
+			headerParams["Content-Type"] = contentType
 		}
 
-		body, err = setBody(t.PostBody, contentType)
+		body, err = setBody(postBody, contentType)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// add form parameters and file if available.
-	if strings.HasPrefix(t.HeaderParams["Content-Type"], "multipart/form-data") && len(formParams) > 0 || (len(
-		t.FileBytes) > 0 && t.FileName != "") {
+	if strings.HasPrefix(headerParams["Content-Type"], "multipart/form-data") && len(formParams) > 0 || (len(fileBytes) > 0 && fileName != "") {
 		if body != nil {
-			return nil, errors.New("Cannot specify postBody and multipart form at the same time.")
+			return nil, fmt.Errorf("Cannot specify postBody and multipart form at the same time.")
 		}
 		body = &bytes.Buffer{}
 		w := multipart.NewWriter(body)
@@ -164,7 +142,7 @@ func (t *HttpClient) prepareRequest() (request *http.Request, err error) {
 
 	if strings.HasPrefix(headerParams["Content-Type"], "application/x-www-form-urlencoded") && len(formParams) > 0 {
 		if body != nil {
-			return nil, errors.New("Cannot specify postBody and x-www-form-urlencoded form at the same time.")
+			return nil, fmt.Errorf("Cannot specify postBody and x-www-form-urlencoded form at the same time.")
 		}
 		body = &bytes.Buffer{}
 		body.WriteString(formParams.Encode())
@@ -191,9 +169,9 @@ func (t *HttpClient) prepareRequest() (request *http.Request, err error) {
 
 	// Generate a new request
 	if body != nil {
-		localVarRequest, err = http.NewRequest(method, url.String(), body)
+		request, err = http.NewRequest(method, url.String(), body)
 	} else {
-		localVarRequest, err = http.NewRequest(method, url.String(), nil)
+		request, err = http.NewRequest(method, url.String(), nil)
 	}
 	if err != nil {
 		return nil, err
@@ -205,53 +183,30 @@ func (t *HttpClient) prepareRequest() (request *http.Request, err error) {
 		for h, v := range headerParams {
 			headers.Set(h, v)
 		}
-		localVarRequest.Header = headers
+		request.Header = headers
 	}
 
 	// Override request host, if applicable
-	if c.Cfg.Host != "" {
-		localVarRequest.Host = c.Cfg.Host
+	if t.Config.Host != "" {
+		request.Host = t.Config.Host
 	}
 
 	// Add the user agent to the request.
-	localVarRequest.Header.Add("User-Agent", c.Cfg.UserAgent)
+	request.Header.Add("User-Agent", t.Config.UserAgent)
 
 	if ctx != nil {
 		// add context to the request
-		localVarRequest = localVarRequest.WithContext(ctx)
-
-		// Walk through any authentication.
-
-		// OAuth2 authentication
-		if tok, ok := ctx.Value(config.ContextOAuth2).(oauth2.TokenSource); ok {
-			// We were able to grab an oauth2 token from the context
-			var latestToken *oauth2.Token
-			if latestToken, err = tok.Token(); err != nil {
-				return nil, err
-			}
-
-			latestToken.SetAuthHeader(localVarRequest)
-		}
-
-		// Basic HTTP Authentication
-		if auth, ok := ctx.Value(config.ContextBasicAuth).(config.BasicAuth); ok {
-			localVarRequest.SetBasicAuth(auth.UserName, auth.Password)
-		}
-
-		// AccessToken Authentication
-		if auth, ok := ctx.Value(config.ContextAccessToken).(string); ok {
-			localVarRequest.Header.Add("Authorization", "Bearer "+auth)
-		}
+		request = request.WithContext(ctx)
 	}
 
-	for header, value := range c.Cfg.DefaultHeader {
-		localVarRequest.Header.Add(header, value)
+	for header, value := range t.Config.DefaultHeader {
+		request.Header.Add(header, value)
 	}
 
-	return localVarRequest, nil
+	return request, nil
 }
 
-func Decode(v interface{}, b []byte, contentType string) (err error) {
+func decode(v interface{}, b []byte, contentType string) (err error) {
 	if strings.Contains(contentType, "application/xml") {
 		if err = xml.Unmarshal(b, v); err != nil {
 			return err
@@ -317,4 +272,53 @@ func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err e
 		return nil, err
 	}
 	return bodyBuf, nil
+}
+
+// Add a file to the multipart request
+func addFile(w *multipart.Writer, fieldName, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	part, err := w.CreateFormFile(fieldName, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(part, file)
+
+	return err
+}
+
+// parameterToString convert interface{} parameters to string, using a delimiter if format is provided.
+func parameterToString(obj interface{}, collectionFormat string) string {
+	var delimiter string
+
+	switch collectionFormat {
+	case "pipes":
+		delimiter = "|"
+	case "ssv":
+		delimiter = " "
+	case "tsv":
+		delimiter = "\t"
+	case "csv":
+		delimiter = ","
+	case "multi":
+		if jsonString, err := json.Marshal(obj); err == nil {
+			return string(jsonString)
+		}
+	}
+
+	if reflect.TypeOf(obj).Kind() == reflect.Slice {
+		return strings.Trim(strings.Replace(fmt.Sprint(obj), " ", delimiter, -1), "[]")
+	}
+
+	if reflect.TypeOf(obj).Kind() == reflect.Struct {
+		if jsonString, err := json.Marshal(obj); err == nil {
+			return string(jsonString)
+		}
+	}
+
+	return fmt.Sprintf("%v", obj)
 }

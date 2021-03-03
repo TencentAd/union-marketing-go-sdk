@@ -64,7 +64,7 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 }
 
 // ProcessAuthCallback implement Auth
-func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput, error) {
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*[]sdk.ProcessAuthCallbackOutput, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ams config")
@@ -124,7 +124,10 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	if err = account.Insert(authAccount); err != nil {
 		return nil, err
 	}
-	return authAccount, nil
+	resList := make([]sdk.ProcessAuthCallbackOutput, 0, 1)
+	resList[0] = *authAccount
+
+	return &resList, nil
 }
 
 func (s *AuthService) getAuthCode(req *http.Request) (string, error) {

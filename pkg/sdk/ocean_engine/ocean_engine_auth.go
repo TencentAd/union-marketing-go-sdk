@@ -1,4 +1,4 @@
-package ams
+package ocean_engine
 
 import (
 	"context"
@@ -13,15 +13,12 @@ import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
 	log "github.com/sirupsen/logrus"
-	amsAds "github.com/tencentad/marketing-api-go-sdk/pkg/ads"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/api"
-	amsConfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
 )
 
 // HTTPServer 登录授权服务
 type AuthService struct {
 	config       *config.Config
-	amsSDKClient *amsAds.SDKClient
 }
 
 // NewAuthService
@@ -34,16 +31,13 @@ func NewAuthService(config *config.Config) *AuthService {
 		log.Errorf("failed to init AuthService, err: %v", err)
 	}
 
-	account.RegisterGetTokenRefreshTime(sdk.AMS, s.GetTokenRefreshTime)
-	account.RegisterRefreshToken(sdk.AMS, s.RefreshToken)
+	account.RegisterGetTokenRefreshTime(sdk.MarketingPlatformOceanEngine, s.GetTokenRefreshTime)
+	account.RegisterRefreshToken(sdk.MarketingPlatformOceanEngine, s.RefreshToken)
 
 	return s
 }
 
 func (s *AuthService) init() error {
-	s.amsSDKClient = amsAds.Init(&amsConfig.SDKConfig{
-		IsDebug: true,
-	})
 	return nil
 }
 
@@ -51,9 +45,9 @@ func (s *AuthService) init() error {
 func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.GenerateAuthURIOutput, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
-		return nil, fmt.Errorf("auth no ams config")
+		return nil, fmt.Errorf("auth no ocean engine config")
 	}
-	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s",
+	authUri := fmt.Sprintf("https://ad.oceanengine.com/openapi/audit/oauth.html?app_id=%d&redirect_uri=%s",
 		s.config.Auth.ClientID,
 		url.QueryEscape(input.RedirectURI),
 	)
@@ -67,7 +61,7 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
-		return nil, fmt.Errorf("auth no ams config")
+		return nil, fmt.Errorf("auth no ocean engine config")
 	}
 
 	authCode, err := s.getAuthCode(input.AuthCallback)
@@ -106,7 +100,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 
 	authAccount := &sdk.AuthAccount{
 		ID:                   formatAuthAccountID(accid, amsSystemType),
-		Platform:             sdk.AMS,
+		Platform:             sdk.MarketingPlatformAMS,
 		AccountUin:           info.AccountUin,
 		AccountID:            strconv.FormatInt(info.AccountId, 10),
 		ScopeList:            *info.ScopeList,
@@ -142,32 +136,33 @@ func calcExpireAt(expireIn int64) time.Time {
 }
 
 // GetTokenRefreshTime
-// ams无法获取到refresh_token的失效时间，每次刷新时会更新，所以这里只判断access_token的失效时间
+// 这里只判断access_token的失效时间
 func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
 	return account.AccessTokenExpireAt
 }
 
 func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutput, error) {
-	authConfig := s.config.Auth
-
-	amsResp, _, err := s.amsSDKClient.Oauth().Token(
-		context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
-		&api.OauthTokenOpts{
-			RefreshToken: optional.NewString(acc.RefreshToken),
-		})
-	if err != nil {
-		log.Errorf("failed to call refresh token api for account[%s]", acc.AccountID)
-		return nil, err
-	}
-
-	return &sdk.RefreshTokenOutput{
-		ID:                  acc.ID,
-		AccessToken:         amsResp.AccessToken,
-		AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
-	}, nil
+	//authConfig := s.config.Auth
+	//
+	//amsResp, _, err := s.amsSDKClient.Oauth().Token(
+	//	context.Background(), authConfig.ClientID, authConfig.ClientSecret, "refresh_token",
+	//	&api.OauthTokenOpts{
+	//		RefreshToken: optional.NewString(acc.RefreshToken),
+	//	})
+	//if err != nil {
+	//	log.Errorf("failed to call refresh token api for account[%s]", acc.AccountID)
+	//	return nil, err
+	//}
+	//
+	//return &sdk.RefreshTokenOutput{
+	//	ID:                  acc.ID,
+	//	AccessToken:         amsResp.AccessToken,
+	//	AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
+	//}, nil
+	return nil,nil
 }
 
 // formatAuthAccountID
 func formatAuthAccountID(accountID string, systemType sdk.AMSSystemType) string {
-	return fmt.Sprintf("%s:%s:%s", sdk.AMS, systemType, accountID)
+	return fmt.Sprintf("%s:%s:%s", sdk.MarketingPlatformAMS, systemType, accountID)
 }

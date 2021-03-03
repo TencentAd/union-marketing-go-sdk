@@ -104,16 +104,16 @@ func GetAuthAccount(id string) (*sdk.AuthAccount, error) {
 }
 
 func refreshRoutine() {
-	for {
-		time.Sleep(time.Second * 10)
-		if err := m.lock.Lock(); err != nil {
-			continue
-		}
-		refresh()
-		if err := m.lock.Unlock(); err != nil {
-			log.Errorf("failed to unlock, err: %v", err)
-		}
-	}
+	//for {
+	//	time.Sleep(time.Second * 10)
+	//	if err := m.lock.Lock(); err != nil {
+	//		continue
+	//	}
+	//	refresh()
+	//	if err := m.lock.Unlock(); err != nil {
+	//		log.Errorf("failed to unlock, err: %v", err)
+	//	}
+	//}
 }
 
 func refresh() {

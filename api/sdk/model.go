@@ -14,8 +14,8 @@ const (
 // AMSSystemType AMS的投放平台类型
 type AMSSystemType string
 const (
-	AMS AMSSystemType = "ams"
-	AMSWechat AMSSystemType="ams_wechat"
+	AMS_EQQ AMSSystemType = "ams_eqq"
+	AMS_MP AMSSystemType="ams_mp"
 )
 
 

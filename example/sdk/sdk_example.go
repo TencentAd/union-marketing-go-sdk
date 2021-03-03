@@ -105,7 +105,7 @@ func main() {
 	}
 
 	amsImpl := ams.NewAMSService(conf.AMS)
-	manager.Register("ams", amsImpl)
+	manager.Register(sdk.AMS, amsImpl)
 
 	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
 	if err != nil {

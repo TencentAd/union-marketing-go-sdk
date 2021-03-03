@@ -1,6 +1,7 @@
 package ams
 
 import (
+	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 )
 
@@ -14,8 +15,12 @@ type AMService struct {
 }
 
 // Name 名称
-func (t *AMService) Name() string {
-	return "AMS"
+func (t *AMService) Name() sdk.MarketingPlatformType {
+	return sdk.AMS
+}
+
+func (t *AMService) GetConfig() *sdkconfig.Config {
+	return t.config
 }
 
 // NewAMSService 创建AMS服务

@@ -1,7 +1,10 @@
 package sdk
 
+import sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+
 // MarketingSDK 对Marketing API的抽象
 type MarketingSDK interface {
+	GetConfig() *sdkconfig.Config
 	Auth // 授权接口
 	//ADDelivery
 	//Account

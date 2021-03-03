@@ -1,8 +1,13 @@
-package oceanengine
-
+package ocean_engine
+//
 //import (
+//	"io/ioutil"
+//	"net/url"
+//	"strings"
+//
 //	api2 "git.code.oa.com/tme-server-component/kg_growth_open/api"
 //	tconfig "github.com/tencentad/marketing-api-go-sdk/pkg/config"
+//	"github.com/tencentad/marketing-api-go-sdk/pkg/errors"
 //)
 //
 //// OceanEngineReport
@@ -24,7 +29,7 @@ package oceanengine
 //		mSdkConfig: sdkConfig,
 //	}
 //}
-
+//
 //func (a *DailyReportsApiService) Get(ctx context.Context, accountId int64, level string, dateRange ReportDateRange, localVarOptionals *DailyReportsGetOpts) (DailyReportsGetResponseData, http.Header, error) {
 //	var (
 //		localVarHttpMethod  = strings.ToUpper("Get")

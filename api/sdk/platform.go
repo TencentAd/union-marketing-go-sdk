@@ -4,8 +4,7 @@ package sdk
 type MarketingPlatformType string
 
 const (
-	MarketingPlatformAMS = "ams"
-	MarketingPlatformAMSWechat = "ams_wechat"
-	MarketingPlatformOceanengine = "oceanengine"
+	AMS MarketingPlatformType = "ams"
+	OceanEngine MarketingPlatformType = "ocean_engine"
 )
 

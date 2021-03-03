@@ -15,27 +15,36 @@ var (
 
 func init() {
 	instance = &manager{
-		impl:           make(map[string]sdk.MarketingSDK),
+		impl:           make(map[sdk.MarketingPlatformType]sdk.MarketingSDK),
 	}
 }
 
 type manager struct {
-	impl           map[string]sdk.MarketingSDK
+	impl           map[sdk.MarketingPlatformType]sdk.MarketingSDK
 	serveMux       *http.ServeMux
 }
 
 // Register 注册对应平台的实现
-func Register(platform string, impl sdk.MarketingSDK) {
+func Register(platform sdk.MarketingPlatformType, impl sdk.MarketingSDK) {
 	instance.impl[platform] = impl
 }
 
+// GetPlatformList 获取注册的平台列表
+func GetPlatformList() []sdk.MarketingPlatformType{
+	keys := make([]sdk.MarketingPlatformType, 0, len(instance.impl))
+	for k := range instance.impl {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 // GetImpl 获取对应平台的实现
-func GetImpl(platform string) sdk.MarketingSDK {
+func GetImpl(platform sdk.MarketingPlatformType) sdk.MarketingSDK {
 	return instance.impl[platform]
 }
 
 // Call 调用对应的方法, 方便web直接传入string，直接调用
-func Call(platform string, method string, input string) (string, error) {
+func Call(platform sdk.MarketingPlatformType, method string, input string) (string, error) {
 	if impl, ok := instance.impl[platform]; !ok {
 		return "", fmt.Errorf("platform[%s] not register", platform)
 	} else {

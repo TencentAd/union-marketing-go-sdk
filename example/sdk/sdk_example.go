@@ -103,11 +103,10 @@ func main() {
 		log.Fatalf("failed to load config, err: %v", err)
 	}
 
-	manager.Register(sdk.AMS, conf.AMS)
-	amsImpl, err := manager.GetImpl(sdk.AMS)
+	_  = manager.Register(sdk.AMS, conf.AMS)
+	amsImpl, _ := manager.GetImpl(sdk.AMS)
 
 	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
-		RedirectURI: "http://kg.rta.oa.com/dashboard/advertiser/callback",
 		State: `{"a": 1}`,
 	})
 	if err != nil {
@@ -120,22 +119,21 @@ func main() {
 	serveCall("/call")
 
 	// OceanEngine
-	manager.Register(sdk.OceanEngine, conf.OceanEngine)
-	oceanEgineImpl, err := manager.GetImpl(sdk.OceanEngine)
+	_ = manager.Register(sdk.OceanEngine, conf.OceanEngine)
+	oceanEngineImpl, _ := manager.GetImpl(sdk.OceanEngine)
 	if err != nil {
 		log.Errorf("failed to get platfrom service, platfrom = %s err: %v", sdk.OceanEngine, err)
 	}
 
-	oceanengineOutput, err := oceanEgineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
-		RedirectURI: conf.OceanEngine.Auth.RedirectUri,
+	oceanEngineOutput, err := oceanEngineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
 	})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {
-		log.Info(oceanengineOutput.AuthURI)
+		log.Info(oceanEngineOutput.AuthURI)
 	}
 
-	serveAuthCallback("/ocean_engine", oceanEgineImpl)
+	serveAuthCallback("/ocean_engine", oceanEngineImpl)
 	if err := account.Init(mysql.NewTokenStorage(), mysql.NewRefreshLock()); err != nil {
 		log.Errorf("failed to init account, err: %v", err)
 	}

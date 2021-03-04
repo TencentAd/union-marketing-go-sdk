@@ -22,7 +22,6 @@ type Auth interface {
 // GenerateAuthURIInput
 type GenerateAuthURIInput struct {
 	State       string `json:"state"`
-	RedirectURI string `json:"redirect_uri"` // 回调地址
 }
 
 // GenerateAuthURIOutput

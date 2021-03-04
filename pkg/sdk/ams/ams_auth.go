@@ -53,9 +53,10 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ams config")
 	}
-	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s",
+	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s&state=%s",
 		s.config.Auth.ClientID,
 		url.QueryEscape(input.RedirectURI),
+		url.QueryEscape(input.State),
 	)
 
 	return &sdk.GenerateAuthURIOutput{
@@ -72,6 +73,11 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	}
 
 	authCode, err := s.getAuthCode(input.AuthCallback)
+	if err != nil {
+		return nil, err
+	}
+
+	state, err := s.getState(input.AuthCallback)
 	if err != nil {
 		return nil, err
 	}
@@ -126,10 +132,11 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		return nil, err
 	}
 
-	resList := make([]*sdk.AuthAccount, 0, 1)
+	resList := make([]*sdk.AuthAccount, 1)
 	resList[0] = authAccount
 
 	result := &sdk.ProcessAuthCallbackOutput{
+		State:           state,
 		AuthAccountList: resList,
 	}
 	return result, nil
@@ -142,6 +149,15 @@ func (s *AuthService) getAuthCode(req *http.Request) (string, error) {
 		return "", fmt.Errorf("'authorization_code' parameter not exist")
 	}
 	return authCode, nil
+}
+
+func (s *AuthService) getState(req *http.Request) (string, error) {
+	query := req.URL.Query()
+	state := query.Get("state")
+	if state == "" {
+		return "", fmt.Errorf("'state' parameter not exist")
+	}
+	return state, nil
 }
 
 // calcExpireAt 计算失效时间
@@ -169,9 +185,9 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 	}
 
 	return &sdk.RefreshTokenOutput{
-		ID:                   acc.ID,
-		AccessToken:          amsResp.AccessToken,
-		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
+		ID:                  acc.ID,
+		AccessToken:         amsResp.AccessToken,
+		AccessTokenExpireAt: calcExpireAt(amsResp.AccessTokenExpiresIn),
 	}, nil
 }
 

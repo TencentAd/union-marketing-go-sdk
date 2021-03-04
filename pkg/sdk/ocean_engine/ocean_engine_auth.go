@@ -49,9 +49,10 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ocean engine config")
 	}
-	authUri := fmt.Sprintf("https://ad.oceanengine.com/openapi/audit/oauth.html?app_id=%d&redirect_uri=%s",
+	authUri := fmt.Sprintf("https://ad.oceanengine.com/openapi/audit/oauth.html?app_id=%d&redirect_uri=%s&state=%s",
 		s.config.Auth.ClientID,
-		url.QueryEscape(input.RedirectURI),
+		s.config.Auth.RedirectUri,
+		url.QueryEscape(input.State),
 	)
 
 	return &sdk.GenerateAuthURIOutput{
@@ -78,11 +79,11 @@ type Data struct {
 type AuthReponse struct {
 	Code      int    `json:"app_id"`
 	Message   string `json:"message"`
-	Data      *Data  `json:data`
-	RequestId string `json:request_id`
+	Data      *Data  `json:"data"`
+	RequestId string `json:"request_id"`
 }
 
-func (s *AuthService) getToken(is_fresh bool, val string) (*AuthReponse, error) {
+func (s *AuthService) getToken(isRefresh bool, val string) (*AuthReponse, error) {
 	authConf := s.config.Auth
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ocean engine config")
@@ -96,26 +97,26 @@ func (s *AuthService) getToken(is_fresh bool, val string) (*AuthReponse, error) 
 		Secret:    s.config.Auth.ClientSecret,
 		GrantType: "auth_code",
 	}
-	if is_fresh {
+	if isRefresh {
 		postBody.RefreshToken = val
 	} else {
 		postBody.AuthCode = val
 	}
 	postParams, _ := json.Marshal(postBody)
 
-	headerparams := make(map[string]string)
-	headerparams["Content-Type"] = "application/json"
-	headerparams["Accept"] = "application/json"
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json"
+	header["Accept"] = "application/json"
 
-	request, err := s.httpClinet.PrepareRequest(context.Background(), path, method, postParams, headerparams,
+	request, err := s.httpClinet.PrepareRequest(context.Background(), path, method, postParams, header,
 		nil, nil, "", nil, "")
 	if err != nil {
 		return nil, err
 	}
 
-	authReponse := &AuthReponse{}
-	resp_err := s.httpClinet.DoProcess(request, authReponse)
-	return authReponse, resp_err
+	authResponse := &AuthReponse{}
+	respErr := s.httpClinet.DoProcess(request, authResponse)
+	return authResponse, respErr
 }
 
 // ProcessAuthCallback implement Auth
@@ -125,25 +126,26 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	if err != nil {
 		return nil, err
 	}
-	authReponse, resp_err := s.getToken(false, authCode)
-	if resp_err != nil {
-		return nil, resp_err
+	authResponse, respErr := s.getToken(false, authCode)
+	if respErr != nil {
+		return nil, respErr
 	}
-	if authReponse.Code != 0 {
-		fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authReponse.Code, authReponse.Message,
-			authReponse.RequestId)
+	if authResponse.Code != 0 {
+		return nil, fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authResponse.Code,
+			authResponse.Message,
+			authResponse.RequestId)
 	}
 
-	resList := make([]*sdk.AuthAccount, 0, len(authReponse.Data.AdvertiserIds))
-	for i := 0; i < len(authReponse.Data.AdvertiserIds); i++ {
-		accid := strconv.FormatInt(authReponse.Data.AdvertiserIds[i], 10)
+	resList := make([]*sdk.AuthAccount, 0, len(authResponse.Data.AdvertiserIds))
+	for i := 0; i < len(authResponse.Data.AdvertiserIds); i++ {
+		accID := strconv.FormatInt(authResponse.Data.AdvertiserIds[i], 10)
 		authAccount := &sdk.AuthAccount{
-			ID:                   formatAuthAccountID(accid),
-			AccountID:            accid,
-			AccessToken:          authReponse.Data.AccessToken,
-			AccessTokenExpireAt:  calcExpireAt(authReponse.Data.ExpiresIn),
-			RefreshToken:         authReponse.Data.RefreshToken,
-			RefreshTokenExpireAt: calcExpireAt(authReponse.Data.RefreshTokenExpiresIn),
+			ID:                   formatAuthAccountID(accID),
+			AccountID:            accID,
+			AccessToken:          authResponse.Data.AccessToken,
+			AccessTokenExpireAt:  calcExpireAt(authResponse.Data.ExpiresIn),
+			RefreshToken:         authResponse.Data.RefreshToken,
+			RefreshTokenExpireAt: calcExpireAt(authResponse.Data.RefreshTokenExpiresIn),
 		}
 		if err = account.Insert(authAccount); err != nil {
 			return nil, err
@@ -177,21 +179,22 @@ func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
 }
 
 func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutput, error) {
-	authReponse, resp_err := s.getToken(true, acc.RefreshToken)
-	if resp_err != nil {
-		return nil, resp_err
+	authResponse, respErr := s.getToken(true, acc.RefreshToken)
+	if respErr != nil {
+		return nil, respErr
 	}
-	if authReponse.Code != 0 {
-		fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authReponse.Code, authReponse.Message,
-			authReponse.RequestId)
+	if authResponse.Code != 0 {
+		return nil, fmt.Errorf("response : code = %d, message = %s, request_id = %s ", authResponse.Code,
+			authResponse.Message,
+			authResponse.RequestId)
 	}
 
 	return &sdk.RefreshTokenOutput{
 		ID:                   acc.ID,
-		AccessToken:          authReponse.Data.AccessToken,
-		AccessTokenExpireAt:  calcExpireAt(authReponse.Data.ExpiresIn),
-		RefreshToken:         authReponse.Data.RefreshToken,
-		RefreshTokenExpireAt: calcExpireAt(authReponse.Data.RefreshTokenExpiresIn),
+		AccessToken:          authResponse.Data.AccessToken,
+		AccessTokenExpireAt:  calcExpireAt(authResponse.Data.ExpiresIn),
+		RefreshToken:         authResponse.Data.RefreshToken,
+		RefreshTokenExpireAt: calcExpireAt(authResponse.Data.RefreshTokenExpiresIn),
 	}, nil
 }
 

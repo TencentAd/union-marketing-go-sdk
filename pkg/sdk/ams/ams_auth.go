@@ -55,7 +55,7 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	}
 	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s&state=%s",
 		s.config.Auth.ClientID,
-		url.QueryEscape(input.RedirectURI),
+		url.QueryEscape(authConf.RedirectUri),
 		url.QueryEscape(input.State),
 	)
 

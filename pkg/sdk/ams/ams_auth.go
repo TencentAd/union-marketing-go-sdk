@@ -86,7 +86,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
 		&api.OauthTokenOpts{
 			AuthorizationCode: optional.NewString(authCode),
-			RedirectUri:       optional.NewString(authConf.RedirectUri),
+			RedirectUri:       optional.NewString(input.RedirectUri),
 		})
 	if err != nil {
 		return nil, err

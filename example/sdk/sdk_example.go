@@ -55,10 +55,11 @@ func Load(configFile ...string) error {
 }
 
 // serveAuthCallback 提供http接口，在用户授权后获取token信息
-func serveAuthCallback(pattern string, impl sdk.MarketingSDK) {
+func serveAuthCallback(pattern string, impl sdk.MarketingSDK, redirectUrl string) {
 	http.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
 		authAccountList, err := impl.ProcessAuthCallback(&sdk.ProcessAuthCallbackInput{
 			AuthCallback: req,
+			RedirectUri:  redirectUrl,
 		})
 		if err != nil {
 			httpx.ServeErrorResponse(w, err)
@@ -103,37 +104,35 @@ func main() {
 		log.Fatalf("failed to load config, err: %v", err)
 	}
 
-	_  = manager.Register(sdk.AMS, conf.AMS)
-	amsImpl, _ := manager.GetImpl(sdk.AMS)
+	manager.Register(sdk.AMS, conf.AMS)
+	amsImpl, err := manager.GetImpl(sdk.AMS)
 
-	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
-		State: `{"a": 1}`,
-	})
+	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {
 		log.Info(output.AuthURI)
 	}
-
-	serveAuthCallback("/", amsImpl)
+	serveAuthCallback("/dashboard/advertiser/callback", amsImpl, conf.AMS.Auth.RedirectUri)
 	serveCall("/call")
 
 	// OceanEngine
-	_ = manager.Register(sdk.OceanEngine, conf.OceanEngine)
-	oceanEngineImpl, _ := manager.GetImpl(sdk.OceanEngine)
+	manager.Register(sdk.OceanEngine, conf.OceanEngine)
+	oceanEgineImpl, err := manager.GetImpl(sdk.OceanEngine)
 	if err != nil {
 		log.Errorf("failed to get platfrom service, platfrom = %s err: %v", sdk.OceanEngine, err)
 	}
 
-	oceanEngineOutput, err := oceanEngineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
-	})
+	oceanengine_output, err := oceanEgineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.OceanEngine.Auth.
+		RedirectUri})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {
-		log.Info(oceanEngineOutput.AuthURI)
+		log.Info(oceanengine_output.AuthURI)
 	}
 
-	serveAuthCallback("/ocean_engine", oceanEngineImpl)
+	serveAuthCallback("/ocean_engine", oceanEgineImpl, oceanEgineImpl.GetConfig().Auth.RedirectUri)
+
 	if err := account.Init(mysql.NewTokenStorage(), mysql.NewRefreshLock()); err != nil {
 		log.Errorf("failed to init account, err: %v", err)
 	}

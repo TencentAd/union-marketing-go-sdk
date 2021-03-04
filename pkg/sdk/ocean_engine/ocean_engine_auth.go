@@ -1,5 +1,6 @@
 package ocean_engine
 
+//
 import (
 	"context"
 	"encoding/json"
@@ -9,11 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/http_tools"
-	log "github.com/sirupsen/logrus"
 )
 
 // HTTPServer 登录授权服务
@@ -119,6 +120,52 @@ func (s *AuthService) getToken(isRefresh bool, val string) (*AuthReponse, error)
 	return authResponse, respErr
 }
 
+//// GetAdvertiserListByToken 根据token获取广告主列表
+//func (s *AuthService) GetAdvertiserListByToken(accessToken string) ([]int64, error) {
+//	authConf := s.config.Auth
+//	if authConf == nil {
+//		return nil, fmt.Errorf("auth no ocean engine config")
+//	}
+//
+//	method := "GET"
+//	// create path and map variables
+//	path := s.httpClinet.Config.BasePath + "/oauth2/advertiser/get/"
+//
+//	headerParams := make(map[string]string)
+//	headerParams["Content-Type"] = "application/json"
+//	headerParams["Accept"] = "application/json"
+//	queryParams := url.Values{}
+//	queryParams["access_token"] = []string{accessToken}
+//	queryParams["app_id"] = []string{strconv.FormatInt(authConf.ClientID, 10)}
+//	queryParams["secret"] = []string{authConf.ClientSecret}
+//
+//	//request, err := s.httpClinet.PrepareRequest(context.Background(), path, method, nil, headerParams,
+//	//	nil, nil, "", nil, "")
+//	//if err != nil {
+//	//	return nil, err
+//	//}
+//
+//	type TokenAdvertiser struct {
+//		Code      int    `json:"app_id"`
+//		Message   string `json:"message"`
+//		Data      *Data  `json:data`
+//		RequestId string `json:request_id`
+//	}
+//	//type Data struct {
+//	//	AdvertiserId         int64 `json:"advertiser_id"`
+//	//	AdvertiserId         int64 `json:"advertiser_name"`
+//	//	AdvertiserId         int64 `json:"advertiser_role"`
+//	//	AdvertiserId         int64 `json:"is_valid"`
+//	//	AdvertiserId         int64 `json:"account_role"`
+//	//
+//	//}
+//	//
+//	//authReponse := &AuthReponse{}
+//	//resp_err := s.httpClinet.DoProcess(request, authReponse)
+//	//return authReponse, resp_err
+//	return nil,nil
+//}
+
 // ProcessAuthCallback implement Auth
 func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput,
 	error) {
@@ -136,9 +183,11 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 			authResponse.RequestId)
 	}
 
-	resList := make([]*sdk.AuthAccount, 0, len(authResponse.Data.AdvertiserIds))
-	for i := 0; i < len(authResponse.Data.AdvertiserIds); i++ {
-		accID := strconv.FormatInt(authResponse.Data.AdvertiserIds[i], 10)
+	// 头条需要根据Token获取已授权账户
+
+	resList := make([]*sdk.AuthAccount, 0, len(authReponse.Data.AdvertiserIds))
+	for i := 0; i < len(authReponse.Data.AdvertiserIds); i++ {
+		accid := strconv.FormatInt(authReponse.Data.AdvertiserIds[i], 10)
 		authAccount := &sdk.AuthAccount{
 			ID:                   formatAuthAccountID(accID),
 			AccountID:            accID,
@@ -172,8 +221,7 @@ func calcExpireAt(expireIn int64) time.Time {
 	return time.Now().Add(time.Second * time.Duration(expireIn))
 }
 
-// GetTokenRefreshTime
-// 这里只判断access_token的失效时间
+// GetTokenRefreshTime  这里只判断access_token的失效时间
 func (s *AuthService) GetTokenRefreshTime(account *sdk.AuthAccount) time.Time {
 	return account.AccessTokenExpireAt
 }

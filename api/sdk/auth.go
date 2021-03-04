@@ -21,6 +21,7 @@ type Auth interface {
 
 // GenerateAuthURIInput
 type GenerateAuthURIInput struct {
+	State       string `json:"state"`
 	RedirectURI string `json:"redirect_uri"` // 回调地址
 }
 
@@ -32,11 +33,11 @@ type GenerateAuthURIOutput struct {
 // ProcessAuthCallbackInput 授权回调处理输入
 type ProcessAuthCallbackInput struct {
 	AuthCallback *http.Request `json:"auth_callback"` // 回调请求，包含auth_code
-	RedirectUri  string        `json:"redirect_uri"`  // 原始的回调地址
 }
 
 // ProcessAuthCallbackOutput 授权回调处理输出
 type ProcessAuthCallbackOutput struct {
+	State           string         `json:"state"`
 	AuthAccountList []*AuthAccount `json:"auth_account_list"` // 授权账户列表
 }
 
@@ -50,13 +51,12 @@ type AuthAccount struct {
 	WechatAccountID      string                `gorm:"column:wechat_account_id"        json:"wechat_account_id,omitempty"`
 	AccountRoleType      AccountRoleType       `gorm:"column:account_role_type"        json:"account_role_type,omitempty"`
 	AccountType          AccountType           `gorm:"column:account_type"             json:"account_type,omitempty"`
-	AMSSystemType		AMSSystemType		   `gorm:"column:ams_system_type"          json:"ams_system_type,omitempty"`
+	AMSSystemType        AMSSystemType         `gorm:"column:ams_system_type"          json:"ams_system_type,omitempty"`
 	RoleType             RoleType              `gorm:"column:role_type"                json:"role_type,omitempty"`
 	AccessToken          string                `gorm:"column:access_token"             json:"access_token,omitempty"`
 	RefreshToken         string                `gorm:"column:refresh_token"            json:"refresh_token,omitempty"`
 	AccessTokenExpireAt  time.Time             `gorm:"column:access_token_expires_at"  json:"access_token_expires_at,omitempty"`
 	RefreshTokenExpireAt time.Time             `gorm:"column:refresh_token_expires_at" json:"refresh_token_expires_at,omitempty"`
-
 
 	CreatedAt time.Time      `gorm:"column:created_at"      json:"-"`
 	UpdatedAt time.Time      `gorm:"column:updated_at"      json:"-"`

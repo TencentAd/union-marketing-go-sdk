@@ -55,11 +55,10 @@ func Load(configFile ...string) error {
 }
 
 // serveAuthCallback 提供http接口，在用户授权后获取token信息
-func serveAuthCallback(pattern string, impl sdk.MarketingSDK, redirectUrl string) {
+func serveAuthCallback(pattern string, impl sdk.MarketingSDK) {
 	http.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
 		authAccountList, err := impl.ProcessAuthCallback(&sdk.ProcessAuthCallbackInput{
 			AuthCallback: req,
-			RedirectUri:  redirectUrl,
 		})
 		if err != nil {
 			httpx.ServeErrorResponse(w, err)
@@ -107,14 +106,17 @@ func main() {
 	manager.Register(sdk.AMS, conf.AMS)
 	amsImpl, err := manager.GetImpl(sdk.AMS)
 
-	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.AMS.Auth.RedirectUri})
+	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
+		RedirectURI: "http://kg.rta.oa.com/dashboard/advertiser/callback",
+		State: `{"a": 1}`,
+	})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {
 		log.Info(output.AuthURI)
 	}
 
-	serveAuthCallback("/ams", amsImpl, conf.AMS.Auth.RedirectUri)
+	serveAuthCallback("/", amsImpl)
 	serveCall("/call")
 
 	// OceanEngine
@@ -124,16 +126,16 @@ func main() {
 		log.Errorf("failed to get platfrom service, platfrom = %s err: %v", sdk.OceanEngine, err)
 	}
 
-	oceanengine_output, err := oceanEgineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{RedirectURI: conf.OceanEngine.Auth.
-		RedirectUri})
+	oceanengineOutput, err := oceanEgineImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{
+		RedirectURI: conf.OceanEngine.Auth.RedirectUri,
+	})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {
-		log.Info(oceanengine_output.AuthURI)
+		log.Info(oceanengineOutput.AuthURI)
 	}
 
-	serveAuthCallback("/ocean_engine", oceanEgineImpl, oceanEgineImpl.GetConfig().Auth.RedirectUri)
-
+	serveAuthCallback("/ocean_engine", oceanEgineImpl)
 	if err := account.Init(mysql.NewTokenStorage(), mysql.NewRefreshLock()); err != nil {
 		log.Errorf("failed to init account, err: %v", err)
 	}

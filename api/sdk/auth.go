@@ -16,7 +16,7 @@ type Auth interface {
 	GenerateAuthURI(*GenerateAuthURIInput) (*GenerateAuthURIOutput, error)
 
 	// ProcessAuthCallback 在用户完成授权后，处理回调请求，获取用户信息以及token相关信息
-	ProcessAuthCallback(input *ProcessAuthCallbackInput) ([]*ProcessAuthCallbackOutput, error)
+	ProcessAuthCallback(input *ProcessAuthCallbackInput) (*ProcessAuthCallbackOutput, error)
 }
 
 // GenerateAuthURIInput
@@ -36,7 +36,9 @@ type ProcessAuthCallbackInput struct {
 }
 
 // ProcessAuthCallbackOutput 授权回调处理输出
-type ProcessAuthCallbackOutput = AuthAccount
+type ProcessAuthCallbackOutput struct {
+	AuthAccountList []*AuthAccount `json:"auth_account_list"` // 授权账户列表
+}
 
 // AuthAccount 授权账号输出
 type AuthAccount struct {

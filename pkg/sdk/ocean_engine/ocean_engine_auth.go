@@ -119,7 +119,7 @@ func (s *AuthService) getToken(is_fresh bool, val string) (*AuthReponse, error) 
 }
 
 // ProcessAuthCallback implement Auth
-func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) ([]*sdk.ProcessAuthCallbackOutput,
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput,
 	error) {
 	authCode, err := s.getAuthCode(input.AuthCallback)
 	if err != nil {
@@ -134,7 +134,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 			authReponse.RequestId)
 	}
 
-	resList := make([]*sdk.ProcessAuthCallbackOutput, 0, len(authReponse.Data.AdvertiserIds))
+	resList := make([]*sdk.AuthAccount, 0, len(authReponse.Data.AdvertiserIds))
 	for i := 0; i < len(authReponse.Data.AdvertiserIds); i++ {
 		accid := strconv.FormatInt(authReponse.Data.AdvertiserIds[i], 10)
 		authAccount := &sdk.AuthAccount{
@@ -150,7 +150,10 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		}
 		resList = append(resList, authAccount)
 	}
-	return resList, nil
+	result := &sdk.ProcessAuthCallbackOutput{
+		AuthAccountList: resList,
+	}
+	return result, nil
 }
 
 func (s *AuthService) getAuthCode(req *http.Request) (string, error) {

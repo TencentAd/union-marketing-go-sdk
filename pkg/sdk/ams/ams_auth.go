@@ -64,7 +64,7 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 }
 
 // ProcessAuthCallback implement Auth
-func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) ([]*sdk.ProcessAuthCallbackOutput,
+func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (*sdk.ProcessAuthCallbackOutput,
 	error) {
 	authConf := s.config.Auth
 	if authConf == nil {
@@ -125,10 +125,14 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	if err = account.Insert(authAccount); err != nil {
 		return nil, err
 	}
-	resList := make([]*sdk.ProcessAuthCallbackOutput, 0, 1)
+
+	resList := make([]*sdk.AuthAccount, 0, 1)
 	resList[0] = authAccount
 
-	return resList, nil
+	result := &sdk.ProcessAuthCallbackOutput{
+		AuthAccountList: resList,
+	}
+	return result, nil
 }
 
 func (s *AuthService) getAuthCode(req *http.Request) (string, error) {
@@ -168,8 +172,6 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 		ID:                   acc.ID,
 		AccessToken:          amsResp.AccessToken,
 		AccessTokenExpireAt:  calcExpireAt(amsResp.AccessTokenExpiresIn),
-		RefreshToken:         amsResp.RefreshToken,
-		RefreshTokenExpireAt: calcExpireAt(amsResp.RefreshTokenExpiresIn),
 	}, nil
 }
 

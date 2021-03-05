@@ -32,6 +32,13 @@ type HttpClient struct {
 	Config *HttpConfig
 }
 
+type Method string
+
+const (
+	GET  Method = "GET"
+	POST Method = "POST"
+)
+
 func Init(config *HttpConfig) *HttpClient {
 	return &HttpClient{
 		client: &http.Client{},
@@ -43,12 +50,12 @@ func Init(config *HttpConfig) *HttpClient {
 func (t *HttpClient) DoProcess(request *http.Request, response interface{}) error {
 	resp, err := t.client.Do(request)
 	// print http info
-	if req_bytes, err := httputil.DumpRequestOut(request, true); err == nil {
+	if reqBytes, err := httputil.DumpRequestOut(request, true); err == nil {
 		log.Info("OceanEngine Request Host:" + request.URL.Host + "\n")
-		log.Info("Request:", string(req_bytes), "\n")
+		log.Info("Request:", string(reqBytes), "\n")
 	}
-	if res_bytes, err := httputil.DumpResponse(resp, true); err == nil {
-		log.Info("OceanEngine response: ", string(res_bytes), "\n")
+	if resBytes, err := httputil.DumpResponse(resp, true); err == nil {
+		log.Info("OceanEngine response: ", string(resBytes), "\n")
 	}
 	if err != nil || response == nil {
 		return err
@@ -75,7 +82,7 @@ func (t *HttpClient) DoProcess(request *http.Request, response interface{}) erro
 // prepareRequest build the request
 func (t *HttpClient) PrepareRequest(
 	ctx context.Context,
-	path string, method string,
+	path string, method Method,
 	postBody interface{},
 	headerParams map[string]string,
 	queryParams url.Values,
@@ -86,6 +93,9 @@ func (t *HttpClient) PrepareRequest(
 
 	var body *bytes.Buffer
 
+	if headerParams == nil {
+		headerParams = make(map[string]string)
+	}
 	// Detect postBody type and post.
 	if postBody != nil {
 		contentType := headerParams["Content-Type"]
@@ -103,7 +113,7 @@ func (t *HttpClient) PrepareRequest(
 	// add form parameters and file if available.
 	if strings.HasPrefix(headerParams["Content-Type"], "multipart/form-data") && len(formParams) > 0 || (len(fileBytes) > 0 && fileName != "") {
 		if body != nil {
-			return nil, fmt.Errorf("Cannot specify postBody and multipart form at the same time.")
+			return nil, fmt.Errorf("can not specify postBody and multipart form at the same time")
 		}
 		body = &bytes.Buffer{}
 		w := multipart.NewWriter(body)
@@ -116,7 +126,7 @@ func (t *HttpClient) PrepareRequest(
 						return nil, err
 					}
 				} else { // form value
-					w.WriteField(k, iv)
+					_ = w.WriteField(k, iv)
 				}
 			}
 		}
@@ -137,12 +147,12 @@ func (t *HttpClient) PrepareRequest(
 
 		// Set Content-Length
 		headerParams["Content-Length"] = fmt.Sprintf("%d", body.Len())
-		w.Close()
+		_ = w.Close()
 	}
 
 	if strings.HasPrefix(headerParams["Content-Type"], "application/x-www-form-urlencoded") && len(formParams) > 0 {
 		if body != nil {
-			return nil, fmt.Errorf("Cannot specify postBody and x-www-form-urlencoded form at the same time.")
+			return nil, fmt.Errorf("can not specify postBody and x-www-form-urlencoded form at the same time")
 		}
 		body = &bytes.Buffer{}
 		body.WriteString(formParams.Encode())
@@ -151,13 +161,13 @@ func (t *HttpClient) PrepareRequest(
 	}
 
 	// Setup path and query parameters
-	url, err := url.Parse(path)
+	urlPath, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Adding Query Param
-	query := url.Query()
+	query := urlPath.Query()
 	for k, v := range queryParams {
 		for _, iv := range v {
 			query.Add(k, iv)
@@ -165,13 +175,13 @@ func (t *HttpClient) PrepareRequest(
 	}
 
 	// Encode the parameters.
-	url.RawQuery = query.Encode()
+	urlPath.RawQuery = query.Encode()
 
 	// Generate a new request
 	if body != nil {
-		request, err = http.NewRequest(method, url.String(), body)
+		request, err = http.NewRequest(string(method), urlPath.String(), body)
 	} else {
-		request, err = http.NewRequest(method, url.String(), nil)
+		request, err = http.NewRequest(string(method), urlPath.String(), nil)
 	}
 	if err != nil {
 		return nil, err
@@ -245,10 +255,7 @@ func detectContentType(body interface{}) string {
 
 // Set request body from an interface{}
 func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err error) {
-	if bodyBuf == nil {
-		bodyBuf = &bytes.Buffer{}
-	}
-
+	bodyBuf = &bytes.Buffer{}
 	if reader, ok := body.(io.Reader); ok {
 		_, err = bodyBuf.ReadFrom(reader)
 	} else if b, ok := body.([]byte); ok {
@@ -260,7 +267,7 @@ func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err e
 	} else if jsonCheck.MatchString(contentType) {
 		err = json.NewEncoder(bodyBuf).Encode(body)
 	} else if xmlCheck.MatchString(contentType) {
-		xml.NewEncoder(bodyBuf).Encode(body)
+		_ = xml.NewEncoder(bodyBuf).Encode(body)
 	}
 
 	if err != nil {

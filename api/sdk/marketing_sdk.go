@@ -7,7 +7,7 @@ type MarketingSDK interface {
 	GetConfig() *sdkconfig.Config
 	Auth // 授权接口
 	//ADDelivery
-	//Account
+	Account
 	Report
 }
 
@@ -37,6 +37,7 @@ type CreativeOperation interface {
 
 // Account 账户管理接口
 type Account interface {
+	GetAuthAccount(id string) (*AuthAccount, error)
 }
 
 // Material 物料管理接口

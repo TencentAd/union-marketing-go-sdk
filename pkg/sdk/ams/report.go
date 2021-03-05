@@ -50,7 +50,7 @@ const TFilterMax = 5
 
 // getReportAdLevel 获取报表adlevel
 func (t *AMSReportService) getReportAdLevel(authAccount *sdk.AuthAccount, reportInput *sdk.GetReportInput, adLevel *string) (bool, error) {
-	if authAccount.AMSSystemType == sdk.AMS_EQQ {
+	if authAccount.AMSSystemType == sdk.AmsEqq {
 		switch reportInput.AdLevel {
 		case sdk.LevelAccount:
 			*adLevel = "REPORT_LEVEL_ADVERTISER"
@@ -75,7 +75,7 @@ func (t *AMSReportService) getReportAdLevel(authAccount *sdk.AuthAccount, report
 			return false, fmt.Errorf("getReportAdLevel invalid adLevel= %s", reportInput.AdLevel)
 		}
 		return true, nil
-	} else if authAccount.AMSSystemType == sdk.AMS_MP {
+	} else if authAccount.AMSSystemType == sdk.AmsMp {
 		switch reportInput.AdLevel {
 		case sdk.LevelAccount:
 			*adLevel = "REPORT_LEVEL_ADVERTISER_WECHAT"
@@ -136,7 +136,7 @@ func (t *AMSReportService) getReportFilter(reportInput *sdk.GetReportInput) []mo
 func (t *AMSReportService) getReportGroupBy(authAccount *sdk.AuthAccount, reportInput *sdk.GetReportInput) []string {
 	var result []string
 	// AMS 微信账户不支持
-	if authAccount.AMSSystemType != sdk.AMS_EQQ || reportInput.GroupBy == nil {
+	if authAccount.AMSSystemType != sdk.AmsEqq || reportInput.GroupBy == nil {
 		return nil
 	}
 	groupby := *reportInput.GroupBy
@@ -410,7 +410,7 @@ func (t *AMSReportService) GetVideoReport(reportInput *sdk.GetReportInput) (*sdk
 	if err != nil {
 		return nil, fmt.Errorf("GetVideoReport get AuthAccount Info error accid=%s", reportInput.BaseInput.AccountId)
 	}
-	if account.AMSSystemType != sdk.AMS_EQQ {
+	if account.AMSSystemType != sdk.AmsEqq {
 		return nil, fmt.Errorf("GetDailyVideoReport invalid account type = %d, id = %d",
 			account.AMSSystemType, reportInput.BaseInput.AccountId)
 	}
@@ -426,7 +426,7 @@ func (t *AMSReportService) GetImageReport(reportInput *sdk.GetReportInput) (*sdk
 	if err != nil {
 		return nil, fmt.Errorf("GetImageReport get AuthAccount Info error accid=%s", reportInput.BaseInput.AccountId)
 	}
-	if account.AMSSystemType != sdk.AMS_EQQ {
+	if account.AMSSystemType != sdk.AmsEqq {
 		return nil, fmt.Errorf("GetDailyVideoReport  invalid account type = %d, id = %d",
 			account.AMSSystemType, reportInput.BaseInput.AccountId)
 	}

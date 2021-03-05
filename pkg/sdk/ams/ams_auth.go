@@ -86,7 +86,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",
 		&api.OauthTokenOpts{
 			AuthorizationCode: optional.NewString(authCode),
-			RedirectUri:       optional.NewString(input.RedirectUri),
+			RedirectUri:       optional.NewString(authConf.RedirectUri),
 		})
 	if err != nil {
 		return nil, err
@@ -103,10 +103,10 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	var amsSystemType sdk.AMSSystemType
 	if info.AccountId > 0 {
 		accid = strconv.FormatInt(info.AccountId, 10)
-		amsSystemType = sdk.AMS_EQQ
+		amsSystemType = sdk.AmsEqq
 	} else if len(info.WechatAccountId) > 0 {
 		accid = info.WechatAccountId
-		amsSystemType = sdk.AMS_MP
+		amsSystemType = sdk.AmsMp
 	} else {
 		return nil, fmt.Errorf("invalid accid")
 	}

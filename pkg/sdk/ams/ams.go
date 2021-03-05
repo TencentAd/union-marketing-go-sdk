@@ -9,6 +9,7 @@ import (
 type AMService struct {
 	config *sdkconfig.Config
 
+	*AMSAccountService // 账户模块
 	*AMSReportService // 报表模块
 	*AuthService
 	*AMSMaterialService // 物料管理模块
@@ -24,11 +25,11 @@ func (t *AMService) GetConfig() *sdkconfig.Config {
 }
 
 // NewAMSService 创建AMS服务
-func NewAMSService(sconfig *sdkconfig.Config) *AMService {
+func NewAMSService(config *sdkconfig.Config) *AMService {
 	return &AMService{
-		config:             sconfig,
-		AMSReportService:   NewAMSReportService(sconfig),
-		AMSMaterialService: NewAMSMaterialService(sconfig),
-		AuthService:        NewAuthService(sconfig),
+		config:             config,
+		AMSReportService:   NewAMSReportService(config),
+		AMSMaterialService: NewAMSMaterialService(config),
+		AuthService:        NewAuthService(config),
 	}
 }

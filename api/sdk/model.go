@@ -14,8 +14,8 @@ const (
 // AMSSystemType AMS的投放平台类型
 type AMSSystemType string
 const (
-	AMS_EQQ AMSSystemType = "ams_eqq"
-	AMS_MP AMSSystemType="ams_mp"
+	AmsEqq AMSSystemType = "ams_eqq"
+	AmsMp  AMSSystemType ="ams_mp"
 )
 
 

@@ -103,10 +103,10 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	var amsSystemType sdk.AMSSystemType
 	if info.AccountId > 0 {
 		accid = strconv.FormatInt(info.AccountId, 10)
-		amsSystemType = sdk.AMS_EQQ
+		amsSystemType = sdk.AmsEqq
 	} else if len(info.WechatAccountId) > 0 {
 		accid = info.WechatAccountId
-		amsSystemType = sdk.AMS_MP
+		amsSystemType = sdk.AmsMp
 	} else {
 		return nil, fmt.Errorf("invalid accid")
 	}

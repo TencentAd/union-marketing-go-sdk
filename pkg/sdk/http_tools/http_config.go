@@ -8,3 +8,10 @@ type HttpConfig struct {
 	DefaultHeader map[string]string `json:"defaultHeader,omitempty"`
 	UserAgent     string            `json:"userAgent,omitempty"`
 }
+
+func (c *HttpConfig) AddDefaultHeader(key string, value string) {
+	if c.DefaultHeader == nil {
+		c.DefaultHeader = make( map[string]string)
+	}
+	c.DefaultHeader[key] = value
+}

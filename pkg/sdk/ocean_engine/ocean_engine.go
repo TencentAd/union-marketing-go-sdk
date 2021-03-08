@@ -3,12 +3,13 @@ package ocean_engine
 import (
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	config "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/http_tools"
 )
 
 type OceanEngineService struct {
-	config                    *config.Config
+	config          *config.Config
 	*AccountService // 账户模块
-	*ReportService // 报表模块
+	*ReportService  // 报表模块
 	*AuthService
 	//*OceanEngineMaterialService // 物料管理模块
 }
@@ -24,12 +25,15 @@ func (t *OceanEngineService) GetConfig() *config.Config {
 
 // NewAMSService 创建AMS服务
 func NewOceanEngineService(config *config.Config) *OceanEngineService {
-    // 设置basePath
-	config.HttpConfig.BasePath = "https://ad.oceanengine.com/open_api"
+	config.HttpConfig = &http_tools.HttpConfig{
+		BasePath: "https://ad.oceanengine.com/open_api",
+	}
 	return &OceanEngineService{
-		config: config,
+		config:         config,
 		AccountService: NewAccountService(config),
-		AuthService: NewAuthService(config),
+		ReportService: NewReportService(config),
+		AuthService:    NewAuthService(config),
+
 	}
 
 }

@@ -55,7 +55,7 @@ type MaterialGetInput struct {
 
 // MaterialFiltering 获取物料过滤参数结构
 type MaterialFiltering struct {
-	MaterialIds      *[]string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
+	MaterialIds      []string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
 	Width            int64     `json:"width,omitempty"`              // 图片宽度
 	Height           int64     `json:"height,omitempty"`             // 图片高度
 	CreatedStartTime string    `json:"created_start_time,omitempty"` // 根据视频上传时间进行过滤的起始时间，与end_time搭配使用，格式：yyyy-mm-dd
@@ -64,7 +64,7 @@ type MaterialFiltering struct {
 
 // ImageGetOutput 获取图片结构
 type ImageGetOutput struct {
-	List     *[]ImageGetOutputStruct `json:"list,omitempty"`
+	List     []*ImageGetOutputStruct `json:"list,omitempty"`
 	PageInfo *PageConf               `json:"page_info,omitempty"`
 }
 
@@ -100,7 +100,7 @@ const (
 
 // VideoGetOutput 视频获取
 type VideoGetOutput struct {
-	List     *[]VideoGetOutputStruct `json:"list,omitempty"`
+	List     []*VideoGetOutputStruct `json:"list,omitempty"`
 	PageInfo *PageConf               `json:"page_info,omitempty"`
 }
 

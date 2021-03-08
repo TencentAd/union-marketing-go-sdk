@@ -6,33 +6,33 @@ import (
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
-	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	config "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"github.com/antihax/optional"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/api"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/model"
 )
 
 // AMSMaterialService AMS物料服务
-type AMSMaterialService struct {
-	config *sdkconfig.Config
+type MaterialService struct {
+	config *config.Config
 }
 
 // NewAMSMaterialService 获取物料服务
-func NewAMSMaterialService(sConfig *sdkconfig.Config) *AMSMaterialService {
-	return &AMSMaterialService{
+func NewMaterialService(sConfig *config.Config) *MaterialService {
+	return &MaterialService{
 		config: sConfig,
 	}
 }
 
 // AddImage 增加图片上传
-func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutput, error) {
+func (t *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
-	account, err := account.GetAuthAccount(id)
+	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
 		return nil, fmt.Errorf("AddImage get AuthAccount Info error accid=%s", input.BaseInput.AccountId)
 	}
 
-	tClient := getAMSSdkClient(account)
+	tClient := getAMSSdkClient(authAccount)
 	imagesAddOpts := &api.ImagesAddOpts{}
 	if input.File != nil {
 		imagesAddOpts.File = optional.NewInterface(input.File)
@@ -43,12 +43,15 @@ func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddO
 	if len(input.Desc) > 0 {
 		imagesAddOpts.Description = optional.NewString(input.Desc)
 	}
-	accountid, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
+	accID, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	response, _, err := tClient.Images().Add(*tClient.Ctx, accountid, string(input.UploadType),
+	response, _, err := tClient.Images().Add(*tClient.Ctx, accID, string(input.UploadType),
 		input.Signature, imagesAddOpts)
+	if err != nil {
+		return nil, err
+	}
 	output := &sdk.ImagesAddOutput{
 		ImageId:     response.ImageId,
 		PreviewUrl:  response.PreviewUrl,
@@ -65,23 +68,23 @@ func (t *AMSMaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddO
 var TMaterialFilterMax = 4
 
 // getFilter 获取过滤信息
-func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput, is_image bool) []model.FilteringStruct {
+func (t *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) []model.FilteringStruct {
 	if input.Filtering == nil {
 		return nil
 	}
 	preStr := "image_"
-	if !is_image {
+	if !isImage {
 		preStr = "media_"
 	}
 	// Filtering
-	TFiltering := make([]model.FilteringStruct, 0, TMaterialFilterMax)
+	TFiltering := make([]model.FilteringStruct, TMaterialFilterMax)
 	mFiltering := input.Filtering
 	// image_id
 	if mFiltering.MaterialIds != nil {
 		TFiltering = append(TFiltering, model.FilteringStruct{
 			Field:    preStr + "id",
 			Operator: "IN",
-			Values:   mFiltering.MaterialIds,
+			Values:   &mFiltering.MaterialIds,
 		})
 	}
 	// Width
@@ -120,13 +123,13 @@ func (t *AMSMaterialService) getFilter(input *sdk.MaterialGetInput, is_image boo
 }
 
 // GetImage 获取图片信息
-func (t *AMSMaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOutput, error) {
+func (t *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
-	account, err := account.GetAuthAccount(id)
+	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
 		return nil, fmt.Errorf("GetImage get AuthAccount Info error accid=%s", input.BaseInput.AccountId)
 	}
-	tClient := getAMSSdkClient(account)
+	tClient := getAMSSdkClient(authAccount)
 	imagesGetOpts := &api.ImagesGetOpts{
 		Fields: optional.NewInterface([]string{"image_id", "width", "height", "file_size", "type", "signature",
 			"source_signature", "preview_url", "source_type", "created_time", "last_modified_time"}),
@@ -149,14 +152,14 @@ func (t *AMSMaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGe
 }
 
 // copyImageInfoToOutput 拷贝图片信息
-func (t *AMSMaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesGetResponseData, imageOutput *sdk.ImageGetOutput) {
+func (t *MaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesGetResponseData, imageOutput *sdk.ImageGetOutput) {
 	if len(*imageResponseData.List) == 0 {
 		return
 	}
-	rList := make([]sdk.ImageGetOutputStruct, 0, len(*imageResponseData.List))
+	rList := make([]*sdk.ImageGetOutputStruct, 0, len(*imageResponseData.List))
 	for i := 0; i < len(*imageResponseData.List); i++ {
 		imageData := (*imageResponseData.List)[i]
-		rList = append(rList, sdk.ImageGetOutputStruct{
+		rList = append(rList, &sdk.ImageGetOutputStruct{
 			ImageId:          imageData.ImageId,
 			Width:            imageData.Width,
 			Height:           imageData.Height,
@@ -171,7 +174,7 @@ func (t *AMSMaterialService) copyImageInfoToOutput(imageResponseData *model.Imag
 			LastModifiedTime: imageData.LastModifiedTime,
 		})
 	}
-	imageOutput.List = &rList
+	imageOutput.List = rList
 	imageOutput.PageInfo = &sdk.PageConf{
 		Page:        imageResponseData.PageInfo.Page,
 		PageSize:    imageResponseData.PageInfo.PageSize,
@@ -181,13 +184,13 @@ func (t *AMSMaterialService) copyImageInfoToOutput(imageResponseData *model.Imag
 }
 
 // GetVideo 获取视频信息
-func (t *AMSMaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOutput, error) {
+func (t *MaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
-	account, err := account.GetAuthAccount(id)
+	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
 		return nil, fmt.Errorf("GetVideo get AuthAccount Info error accid=%s", input.BaseInput.AccountId)
 	}
-	tClient := getAMSSdkClient(account)
+	tClient := getAMSSdkClient(authAccount)
 	videoGetOpts := &api.VideosGetOpts{
 		Fields: optional.NewInterface([]string{"video_id", "width", "height", "video_frames", "video_fps",
 			"video_codec", "video_bit_rate", "audio_codec", "audio_bit_rate", "file_size", "type", "signature",
@@ -220,14 +223,14 @@ func (t *AMSMaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGe
 }
 
 // copyVideoInfoToOutput 拷贝视频信息
-func (t *AMSMaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosGetResponseData, videoOutput *sdk.VideoGetOutput) {
+func (t *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosGetResponseData, videoOutput *sdk.VideoGetOutput) {
 	if len(*videoResponseData.List) == 0 {
 		return
 	}
-	rList := make([]sdk.VideoGetOutputStruct, 0, len(*videoResponseData.List))
+	rList := make([]*sdk.VideoGetOutputStruct, 0, len(*videoResponseData.List))
 	for i := 0; i < len(*videoResponseData.List); i++ {
 		videoData := (*videoResponseData.List)[i]
-		rList = append(rList, sdk.VideoGetOutputStruct{
+		rList = append(rList, &sdk.VideoGetOutputStruct{
 			VideoId:                  videoData.VideoId,
 			Width:                    videoData.Width,
 			Height:                   videoData.Height,
@@ -258,7 +261,7 @@ func (t *AMSMaterialService) copyVideoInfoToOutput(videoResponseData *model.Vide
 			SourceType:               sdk.MaterialSourceType(videoData.SourceType),
 		})
 	}
-	videoOutput.List = &rList
+	videoOutput.List = rList
 	videoOutput.PageInfo = &sdk.PageConf{
 		Page:        videoResponseData.PageInfo.Page,
 		PageSize:    videoResponseData.PageInfo.PageSize,
@@ -268,22 +271,25 @@ func (t *AMSMaterialService) copyVideoInfoToOutput(videoResponseData *model.Vide
 }
 
 // AddVideo 增加视频上传
-func (t *AMSMaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutput, error) {
+func (t *MaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
-	account, err := account.GetAuthAccount(id)
+	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
 		return nil, fmt.Errorf("AddVideo get AuthAccount Info error accid=%s", input.BaseInput.AccountId)
 	}
-	tClient := getAMSSdkClient(account)
+	tClient := getAMSSdkClient(authAccount)
 	videoAddOpts := &api.VideosAddOpts{}
 	if len(input.Desc) > 0 {
 		videoAddOpts.Description = optional.NewString(input.Desc)
 	}
-	accountid, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
+	accID, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	response, _, err := tClient.Videos().Add(*tClient.Ctx, accountid, input.File, input.Signature, videoAddOpts)
+	response, _, err := tClient.Videos().Add(*tClient.Ctx, accID, input.File, input.Signature, videoAddOpts)
+	if err != nil {
+		return nil, err
+	}
 	output := &sdk.VideoAddOutput{
 		VideoId: response.VideoId,
 	}

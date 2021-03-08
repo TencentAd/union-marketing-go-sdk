@@ -2,7 +2,7 @@ package sdk
 
 // 报表回包
 type GetReportOutput struct {
-	List     *[]ReportOutputListStruct `json:"list,omitempty"`
+	List     []*ReportOutputListStruct `json:"list,omitempty"`
 	PageInfo *PageConf                 `json:"page_info,omitempty"`
 }
 

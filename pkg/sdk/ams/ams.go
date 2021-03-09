@@ -11,8 +11,8 @@ type AMService struct {
 
 	*AMSAccountService // 账户模块
 	*ReportService     // 报表模块
-	*AuthService
-	*MaterialService // 物料管理模块
+	*AuthService       // 权限认证模块
+	*MaterialService   // 物料管理模块
 }
 
 // Name 名称
@@ -27,9 +27,9 @@ func (t *AMService) GetConfig() *sdkconfig.Config {
 // NewAMSService 创建AMS服务
 func NewAMSService(config *sdkconfig.Config) *AMService {
 	return &AMService{
-		config:             config,
+		config:          config,
 		ReportService:   NewReportService(config),
 		MaterialService: NewMaterialService(config),
-		AuthService:        NewAuthService(config),
+		AuthService:     NewAuthService(config),
 	}
 }

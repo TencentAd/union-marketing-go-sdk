@@ -3,6 +3,7 @@ package ams
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
@@ -37,11 +38,11 @@ func (t *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutp
 	if input.File != nil {
 		imagesAddOpts.File = optional.NewInterface(input.File)
 	}
-	if len(input.Bytes) > 0 {
-		imagesAddOpts.Bytes = optional.NewString(input.Bytes)
+	if len(input.BytesAMS) > 0 {
+		imagesAddOpts.Bytes = optional.NewString(input.BytesAMS)
 	}
-	if len(input.Desc) > 0 {
-		imagesAddOpts.Description = optional.NewString(input.Desc)
+	if len(input.DescAMS) > 0 {
+		imagesAddOpts.Description = optional.NewString(input.DescAMS)
 	}
 	accID, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
 	if err != nil {
@@ -170,8 +171,8 @@ func (t *MaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesG
 			SourceSignature:  imageData.SourceSignature,
 			PreviewUrl:       imageData.PreviewUrl,
 			SourceType:       sdk.MaterialSourceType(imageData.SourceType),
-			CreatedTime:      imageData.CreatedTime,
-			LastModifiedTime: imageData.LastModifiedTime,
+			CreatedTime:      time.Unix(imageData.CreatedTime, 0).Format("2006-01-02 15:04:05"),
+			LastModifiedTime: time.Unix(imageData.LastModifiedTime, 0).Format("2006-01-02 15:04:05"),
 		})
 	}
 	imageOutput.List = rList
@@ -231,7 +232,7 @@ func (t *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosG
 	for i := 0; i < len(*videoResponseData.List); i++ {
 		videoData := (*videoResponseData.List)[i]
 		rList = append(rList, &sdk.VideoGetOutputStruct{
-			VideoId:                  videoData.VideoId,
+			VideoId:                  strconv.FormatInt(videoData.VideoId, 10),
 			Width:                    videoData.Width,
 			Height:                   videoData.Height,
 			VideoFrames:              videoData.VideoFrames,
@@ -247,7 +248,7 @@ func (t *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosG
 			Description:              videoData.Description,
 			PreviewUrl:               videoData.PreviewUrl,
 			KeyFrameImageUrl:         videoData.KeyFrameImageUrl,
-			CreatedTime:              videoData.CreatedTime,
+			CreatedTime:              time.Unix(videoData.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			LastModifiedTime:         videoData.LastModifiedTime,
 			VideoProfileName:         videoData.VideoProfileName,
 			AudioSampleRate:          videoData.AudioSampleRate,

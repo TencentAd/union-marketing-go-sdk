@@ -46,12 +46,13 @@ type Material interface {
 	GetImage()
 	AddVideo()
 	GetVideo()
+	BindMaterial()
 }
 
 // Report 报表相关接口
 type Report interface {
 	// GetReport 获取报表
 	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	//GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	//GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
 }

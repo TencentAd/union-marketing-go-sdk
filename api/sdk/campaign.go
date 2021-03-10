@@ -66,15 +66,15 @@ type CampaignGetOutput struct {
 type CampaignGetInfo struct {
 	CampaignId         int64           `json:"campaign_id,omitempty"`
 	CampaignName       string          `json:"campaign_name,omitempty"`
-	ConfiguredStatus   CampaignStatus  `json:"configured_status,omitempty"`
+	CampaignStatus     CampaignStatus  `json:"campaign_status,omitempty"`
 	CampaignType       CampaignTypeAMS `json:"campaign_type,omitempty"`
 	PromotedObjectType LandingType     `json:"promoted_object_type,omitempty"`
-	DailyBudget        float32           `json:"daily_budget,omitempty"`
+	DailyBudget        float32         `json:"daily_budget,omitempty"`
 	BudgetReachDate    int64           `json:"budget_reach_date,omitempty"`
 	CreatedTime        string          `json:"created_time,omitempty"`
 	LastModifiedTime   string          `json:"last_modified_time,omitempty"`
 	SpeedMode          SpeedModeAMS    `json:"speed_mode,omitempty"`
-	IsDeleted          bool           `json:"is_deleted,omitempty"`
+	IsDeleted          bool            `json:"is_deleted,omitempty"`
 }
 
 type CampaignStatus string

@@ -8,7 +8,7 @@ import (
 
 	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ams"
-	sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
 	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ocean_engine"
 )
 
@@ -28,13 +28,13 @@ type manager struct {
 }
 
 // Register 注册对应平台的实现
-func Register(platform sdk.MarketingPlatformType, sconfig *sdkconfig.Config) error {
+func Register(platform sdk.MarketingPlatformType, config *config.Config) error {
 	switch platform {
 	case sdk.AMS:
-		instance.impl[platform] = ams.NewAMSService(sconfig)
+		instance.impl[platform] = ams.NewAMSService(config)
 		return nil
 	case sdk.OceanEngine:
-		instance.impl[platform] = ocean_engine.NewOceanEngineService(sconfig)
+		instance.impl[platform] = ocean_engine.NewOceanEngineService(config)
 		return nil
 	default:
 		return fmt.Errorf("not support platform = %s", platform)
@@ -53,7 +53,7 @@ func GetPlatformList() []sdk.MarketingPlatformType {
 // GetImpl 获取对应平台的实现
 func GetImpl(platform sdk.MarketingPlatformType) (sdk.MarketingSDK, error) {
 	if instance.impl[platform] == nil {
-		return nil,fmt.Errorf("not register platform = %s", platform)
+		return nil, fmt.Errorf("not register platform = %s", platform)
 	}
 	return instance.impl[platform], nil
 }

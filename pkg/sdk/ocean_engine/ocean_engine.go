@@ -10,13 +10,10 @@ type OceanEngineService struct {
 	config           *config.Config
 	*AccountService  // 账户模块
 	*CampaignService  // 计划模块
+	*AdGroupService  // 广告组模块
 	*ReportService   // 报表模块
 	*AuthService     // 权限模块
 	*MaterialService // 物料管理模块
-}
-
-func (s *OceanEngineService) GetAdGroupList(input *sdk.AdGroupGetInput) (*sdk.AdGroupGetOutput, error) {
-	panic("implement me")
 }
 
 // Name 名称
@@ -37,6 +34,7 @@ func NewOceanEngineService(config *config.Config) *OceanEngineService {
 		config:          config,
 		AccountService:  NewAccountService(config),
 		CampaignService: NewCampaignService(config),
+		AdGroupService: NewAdGroupService(config),
 		ReportService:   NewReportService(config),
 		AuthService:     NewAuthService(config),
 		MaterialService: NewMaterialService(config),

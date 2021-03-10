@@ -49,19 +49,7 @@ func (s *AdGroupService) getFilter(input *sdk.AdGroupGetInput) []model.Filtering
 		TFiltering = append(TFiltering, model.FilteringStruct{
 			Field:    "adgroup_name",
 			Operator: "CONTAINS",
-			Values:   &mFiltering.AdGroupName,
-		})
-	}
-
-	if len(mFiltering.LandingType) > 0 {
-		var landTypeString []string
-		for i := 0; i < len(mFiltering.LandingType); i++ {
-			landTypeString = append(landTypeString, string(mFiltering.LandingType[i]))
-		}
-		TFiltering = append(TFiltering, model.FilteringStruct{
-			Field:    "promoted_object_type",
-			Operator: "EQUALS",
-			Values:   &landTypeString,
+			Values:   &[]string{mFiltering.AdGroupName},
 		})
 	}
 
@@ -133,9 +121,9 @@ func (s *AdGroupService) copyAdGroupInfoToOutput(adGroupsData *model.AdgroupsGet
 			CampaignId:         adGroupInfo.CampaignId,
 			AdGroupId:          adGroupInfo.AdgroupId,
 			AdGroupName:        adGroupInfo.AdgroupName,
-			ConfiguredStatus:   sdk.CampaignStatus(adGroupInfo.ConfiguredStatus),
+			AdGroupStatus:      sdk.AdGroupStatus(adGroupInfo.ConfiguredStatus),
 			PromotedObjectType: sdk.LandingType(adGroupInfo.PromotedObjectType),
-			DailyBudget:        adGroupInfo.DailyBudget,
+			DailyBudget:        float32(adGroupInfo.DailyBudget),
 			CreatedTime:        time.Unix(adGroupInfo.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			LastModifiedTime:   time.Unix(adGroupInfo.LastModifiedTime, 0).Format("2006-01-02 15:04:05"),
 			IsDeleted:          adGroupInfo.IsDeleted,

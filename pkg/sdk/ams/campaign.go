@@ -128,7 +128,7 @@ func (s *CampaignService) copyCampaignInfoToOutput(campaignData *model.Campaigns
 		rList = append(rList, &sdk.CampaignGetInfo{
 			CampaignId:         camInfo.CampaignId,
 			CampaignName:       camInfo.CampaignName,
-			ConfiguredStatus:   sdk.CampaignStatus(camInfo.ConfiguredStatus),
+			CampaignStatus:     sdk.CampaignStatus(camInfo.ConfiguredStatus),
 			CampaignType:       sdk.CampaignTypeAMS(camInfo.CampaignType),
 			PromotedObjectType: sdk.LandingType(camInfo.PromotedObjectType),
 			DailyBudget:        float32(camInfo.DailyBudget),

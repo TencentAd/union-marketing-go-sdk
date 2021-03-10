@@ -19,7 +19,7 @@ type CampaignService struct {
 	httpClient *http_tools.HttpClient
 }
 
-// NewCampaignService 获取广告组服务
+// NewCampaignService 获取广告计划服务
 func NewCampaignService(sConfig *config.Config) *CampaignService {
 	return &CampaignService{
 		config:     sConfig,
@@ -172,7 +172,7 @@ func (s *CampaignService) copyCampaignDataToOutput(input *GetCampaignList,
 		rList = append(rList, &sdk.CampaignGetInfo{
 			CampaignId:         campaignInfo.ID,
 			CampaignName:       campaignInfo.Name,
-			ConfiguredStatus:   sdk.CampaignStatus(campaignInfo.Status),
+			CampaignStatus:   sdk.CampaignStatus(campaignInfo.Status),
 			PromotedObjectType: sdk.LandingType(campaignInfo.LandingType),
 			DailyBudget:        campaignInfo.Budget,
 			CreatedTime:        campaignInfo.CampaignCreateTime,

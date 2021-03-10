@@ -21,6 +21,7 @@ func NewAccountService(config *config.Config) *AccountService {
 	return s
 }
 
-func (s *AccountService)GetAuthAccount(id string) (*sdk.AuthAccount, error) {
+func (s *AccountService) GetAuthAccount(input *sdk.BaseInput) (*sdk.AuthAccount, error) {
+	id := formatAuthAccountID(input.AccountId)
 	return account.GetAuthAccount(id)
 }

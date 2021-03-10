@@ -54,14 +54,10 @@ func (s *CampaignService) getFilter(input *sdk.CampaignGetInput) []model.Filteri
 	}
 
 	if len(mFiltering.LandingType) > 0 {
-		var landTypeString []string
-		for i := 0; i < len(mFiltering.LandingType); i++ {
-			landTypeString = append(landTypeString, string(mFiltering.LandingType[i]))
-		}
 		TFiltering = append(TFiltering, model.FilteringStruct{
 			Field:    "promoted_object_type",
 			Operator: "EQUALS",
-			Values:   &landTypeString,
+			Values:   &[]string{string(input.Filtering.LandingType)},
 		})
 	}
 

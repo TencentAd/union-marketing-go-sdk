@@ -9,6 +9,7 @@ import (
 type OceanEngineService struct {
 	config           *config.Config
 	*AccountService  // 账户模块
+	*CampaignService  // 计划模块
 	*ReportService   // 报表模块
 	*AuthService     // 权限模块
 	*MaterialService // 物料管理模块
@@ -35,6 +36,7 @@ func NewOceanEngineService(config *config.Config) *OceanEngineService {
 	return &OceanEngineService{
 		config:          config,
 		AccountService:  NewAccountService(config),
+		CampaignService: NewCampaignService(config),
 		ReportService:   NewReportService(config),
 		AuthService:     NewAuthService(config),
 		MaterialService: NewMaterialService(config),

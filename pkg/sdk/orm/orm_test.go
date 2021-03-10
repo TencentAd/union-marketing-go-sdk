@@ -93,7 +93,7 @@ func TestGetLock(t *testing.T) {
 
 	run := func() {
 		out <- db.Transaction(func(tx *gorm.DB) error {
-			return LockDB(tx, "tableName", 2)
+			return LockDB(tx, 2)
 		})
 		wg.Done()
 	}

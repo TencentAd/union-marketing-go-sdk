@@ -26,7 +26,7 @@ func NewMaterialService(sConfig *config.Config) *MaterialService {
 }
 
 // AddImage 增加图片上传
-func (t *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutput, error) {
+func (s *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
 	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
@@ -69,7 +69,7 @@ func (t *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutp
 var TMaterialFilterMax = 4
 
 // getFilter 获取过滤信息
-func (t *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) []model.FilteringStruct {
+func (s *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) []model.FilteringStruct {
 	if input.Filtering == nil {
 		return nil
 	}
@@ -124,7 +124,7 @@ func (t *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) [
 }
 
 // GetImage 获取图片信息
-func (t *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOutput, error) {
+func (s *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
 	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
@@ -136,7 +136,7 @@ func (t *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOu
 			"source_signature", "preview_url", "source_type", "created_time", "last_modified_time"}),
 	}
 
-	if tFilter := t.getFilter(input, true); tFilter != nil && len(tFilter) > 0 {
+	if tFilter := s.getFilter(input, true); tFilter != nil && len(tFilter) > 0 {
 		imagesGetOpts.Filtering = optional.NewInterface(tFilter)
 	}
 	accountid, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
@@ -148,12 +148,12 @@ func (t *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOu
 		return nil, err
 	}
 	imageOutput := &sdk.ImageGetOutput{}
-	t.copyImageInfoToOutput(&response, imageOutput)
+	s.copyImageInfoToOutput(&response, imageOutput)
 	return imageOutput, err
 }
 
 // copyImageInfoToOutput 拷贝图片信息
-func (t *MaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesGetResponseData, imageOutput *sdk.ImageGetOutput) {
+func (s *MaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesGetResponseData, imageOutput *sdk.ImageGetOutput) {
 	if len(*imageResponseData.List) == 0 {
 		return
 	}
@@ -185,7 +185,7 @@ func (t *MaterialService) copyImageInfoToOutput(imageResponseData *model.ImagesG
 }
 
 // GetVideo 获取视频信息
-func (t *MaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOutput, error) {
+func (s *MaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
 	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
@@ -200,7 +200,7 @@ func (t *MaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOu
 			"sample_aspect_ratio", "audio_profile_name", "scan_type", "image_duration_millisecond",
 			"audio_duration_millisecond", "source_type"}),
 	}
-	if tFilter := t.getFilter(input, false); tFilter != nil && len(tFilter) > 0 {
+	if tFilter := s.getFilter(input, false); tFilter != nil && len(tFilter) > 0 {
 		videoGetOpts.Filtering = optional.NewInterface(tFilter)
 	}
 	if input.Page > 0 {
@@ -219,12 +219,12 @@ func (t *MaterialService) GetVideo(input *sdk.MaterialGetInput) (*sdk.VideoGetOu
 		return nil, err
 	}
 	videoOutput := &sdk.VideoGetOutput{}
-	t.copyVideoInfoToOutput(&response, videoOutput)
+	s.copyVideoInfoToOutput(&response, videoOutput)
 	return videoOutput, err
 }
 
 // copyVideoInfoToOutput 拷贝视频信息
-func (t *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosGetResponseData, videoOutput *sdk.VideoGetOutput) {
+func (s *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosGetResponseData, videoOutput *sdk.VideoGetOutput) {
 	if len(*videoResponseData.List) == 0 {
 		return
 	}
@@ -272,7 +272,7 @@ func (t *MaterialService) copyVideoInfoToOutput(videoResponseData *model.VideosG
 }
 
 // AddVideo 增加视频上传
-func (t *MaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutput, error) {
+func (s *MaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutput, error) {
 	id := formatAuthAccountID(input.BaseInput.AccountId, input.BaseInput.AMSSystemType)
 	authAccount, err := account.GetAuthAccount(id)
 	if err != nil {
@@ -295,4 +295,8 @@ func (t *MaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutpu
 		VideoId: response.VideoId,
 	}
 	return output, err
+}
+
+func (t *MaterialService) BindMaterial(input *sdk.MaterialBindInput) (*sdk.MaterialBindOutput, error) {
+	panic("implement me")
 }

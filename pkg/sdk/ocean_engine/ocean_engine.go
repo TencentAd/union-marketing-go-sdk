@@ -7,11 +7,15 @@ import (
 )
 
 type OceanEngineService struct {
-	config          *config.Config
-	*AccountService // 账户模块
-	*ReportService  // 报表模块
-	*AuthService
+	config           *config.Config
+	*AccountService  // 账户模块
+	*ReportService   // 报表模块
+	*AuthService     // 权限模块
 	*MaterialService // 物料管理模块
+}
+
+func (s *OceanEngineService) GetAdGroupList(input *sdk.AdGroupGetInput) (*sdk.AdGroupGetOutput, error) {
+	panic("implement me")
 }
 
 // Name 名称
@@ -29,10 +33,10 @@ func NewOceanEngineService(config *config.Config) *OceanEngineService {
 		BasePath: "https://ad.oceanengine.com/open_api",
 	}
 	return &OceanEngineService{
-		config:         config,
-		AccountService: NewAccountService(config),
-		ReportService: NewReportService(config),
-		AuthService:    NewAuthService(config),
+		config:          config,
+		AccountService:  NewAccountService(config),
+		ReportService:   NewReportService(config),
+		AuthService:     NewAuthService(config),
 		MaterialService: NewMaterialService(config),
 	}
 

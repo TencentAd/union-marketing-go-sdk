@@ -82,7 +82,7 @@ func serveCall(pattern string) {
 
 		fmt.Println("method:", method)
 		fmt.Println("input:", input)
-		response, err := manager.Call("ocean_engine", method, input)
+		response, err := manager.Call("ams", method, input)
 		if err != nil {
 			httpx.ServeErrorResponse(w, err)
 			return
@@ -106,7 +106,7 @@ func main() {
 	manager.Register(sdk.AMS, conf.AMS)
 	amsImpl, _ := manager.GetImpl(sdk.AMS)
 
-	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{})
+	output, err := amsImpl.GenerateAuthURI(&sdk.GenerateAuthURIInput{State: "1"})
 	if err != nil {
 		log.Errorf("failed to generate auth uri, err: %v", err)
 	} else {

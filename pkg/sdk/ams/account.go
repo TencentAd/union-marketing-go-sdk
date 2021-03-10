@@ -19,6 +19,7 @@ func NewAccountService(config *config.Config) *AccountService {
 }
 
 // GetAuthAccount 获取账户信息
-func (s *CampaignService) GetAuthAccount(id string) (*sdk.AuthAccount, error) {
+func (s *AccountService) GetAuthAccount(input *sdk.BaseInput) (*sdk.AuthAccount, error) {
+	id := formatAuthAccountID(input.AccountId, input.AMSSystemType)
 	return account.GetAuthAccount(id)
 }

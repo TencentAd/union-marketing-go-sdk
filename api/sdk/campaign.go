@@ -2,20 +2,21 @@ package sdk
 
 // CampaignGetInput 获取推广计划
 type CampaignGetInput struct {
-	BaseInput BaseInput         `json:"base_input,omitempty"` // 账户信息
+	BaseInput BaseInput          `json:"base_input,omitempty"` // 账户信息
 	Filtering *CampaignFiltering `json:"filtering,omitempty"`  // 过滤信息
-	Page      int64             `json:"page,omitempty"`       // 搜索页码，默认值：1 最小值 1，最大值 99999
-	PageSize  int64             `json:"page_size,omitempty"`  // 一页显示的数据条数，默认值：10。最小值 1，最大值 500
+	Page      int64              `json:"page,omitempty"`       // 搜索页码，默认值：1 最小值 1，最大值 99999
+	PageSize  int64              `json:"page_size,omitempty"`  // 一页显示的数据条数，默认值：10。最小值 1，最大值 500
 }
 
 // CampaignFiltering 过滤粒度
 type CampaignFiltering struct {
 	// 共有
-	CampaignIDList []int64       `json:"campaign_ids,omitempty"`  // 计划id列表
-	CampaignName   []string      `json:"campaign_name,omitempty"` // 广告计划name过滤,长度为1-30个字符
-	LandingType    []LandingType `json:"landing_type,omitempty"`  // 广告计划推广目的过滤
-	CreateTime     string        `json:"create_time,omitempty"`   // 广告计划创建时间，格式yyyy-mm-dd,表示过滤出当天创建的广告计划
-	IsDeletedAMS   bool          `json:"is_deleted,omitempty"`    // 是否已删除，AMS特有参数
+	CampaignIDList []int64        `json:"campaign_ids,omitempty"`    // 计划id列表
+	CampaignName   []string       `json:"campaign_name,omitempty"`   // 广告计划name过滤,长度为1-30个字符
+	LandingType    LandingType    `json:"landing_type,omitempty"`    // 广告计划推广目的过滤
+	CreateTime     string         `json:"create_time,omitempty"`     // 广告计划创建时间，格式yyyy-mm-dd,表示过滤出当天创建的广告计划
+	CampaignStatus CampaignStatus `json:"campaign_status,omitempty"` // 广告组状态过滤
+	IsDeletedAMS   bool           `json:"is_deleted,omitempty"`      // 是否已删除，AMS特有参数
 }
 
 type LandingType string

@@ -41,7 +41,7 @@ type CreativeOperation interface {
 
 // Account 账户管理接口
 type Account interface {
-	GetAuthAccount(id string) (*AuthAccount, error)
+	GetAuthAccount(input *BaseInput) (*AuthAccount, error)
 }
 
 // Material 物料管理接口

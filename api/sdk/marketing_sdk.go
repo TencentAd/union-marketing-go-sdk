@@ -10,7 +10,6 @@ type MarketingSDK interface {
 	Account
 	Report
 	Material
-	CampaignOperation // 广告计划接口
 }
 
 // ADDelivery 广告投放接口

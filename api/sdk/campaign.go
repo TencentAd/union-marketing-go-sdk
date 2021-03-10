@@ -12,7 +12,7 @@ type CampaignGetInput struct {
 type CampaignFiltering struct {
 	// 共有
 	CampaignIDList []int64        `json:"campaign_ids,omitempty"`    // 计划id列表
-	CampaignName   []string       `json:"campaign_name,omitempty"`   // 广告计划name过滤,长度为1-30个字符
+	CampaignName   string         `json:"campaign_name,omitempty"`   // 广告计划name过滤,长度为1-30个字符
 	LandingType    LandingType    `json:"landing_type,omitempty"`    // 广告计划推广目的过滤
 	CreateTime     string         `json:"create_time,omitempty"`     // 广告计划创建时间，格式yyyy-mm-dd,表示过滤出当天创建的广告计划
 	CampaignStatus CampaignStatus `json:"campaign_status,omitempty"` // 广告组状态过滤
@@ -69,13 +69,12 @@ type CampaignGetInfo struct {
 	ConfiguredStatus   CampaignStatus  `json:"configured_status,omitempty"`
 	CampaignType       CampaignTypeAMS `json:"campaign_type,omitempty"`
 	PromotedObjectType LandingType     `json:"promoted_object_type,omitempty"`
-	DailyBudget        int64           `json:"daily_budget,omitempty"`
+	DailyBudget        float32           `json:"daily_budget,omitempty"`
 	BudgetReachDate    int64           `json:"budget_reach_date,omitempty"`
 	CreatedTime        string          `json:"created_time,omitempty"`
 	LastModifiedTime   string          `json:"last_modified_time,omitempty"`
 	SpeedMode          SpeedModeAMS    `json:"speed_mode,omitempty"`
-	IsDeleted          *bool           `json:"is_deleted,omitempty"`
-	IsAutoReplenish    int64           `json:"is_auto_replenish,omitempty"`
+	IsDeleted          bool           `json:"is_deleted,omitempty"`
 }
 
 type CampaignStatus string

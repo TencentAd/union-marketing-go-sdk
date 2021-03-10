@@ -79,10 +79,13 @@ func serveCall(pattern string) {
 		query := req.URL.Query()
 		method := query["method"][0]
 		input := query["input"][0]
+		platform := query["platform"][0]
 
 		fmt.Println("method:", method)
 		fmt.Println("input:", input)
-		response, err := manager.Call("ams", method, input)
+		fmt.Println("platform:", input)
+
+		response, err := manager.Call(sdk.MarketingPlatformType(platform), method, input)
 		if err != nil {
 			httpx.ServeErrorResponse(w, err)
 			return

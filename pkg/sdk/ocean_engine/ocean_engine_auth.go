@@ -41,11 +41,17 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ocean engine config")
 	}
-	authUri := fmt.Sprintf("https://ad.oceanengine.com/openapi/audit/oauth.html?app_id=%d&redirect_uri=%s&state=%s",
+	authUri := fmt.Sprintf("https://ad.oceanengine.com/openapi/audit/oauth.html?app_id=%d&redirect_uri=%s",
 		s.config.Auth.ClientID,
 		s.config.Auth.RedirectUri,
-		url.QueryEscape(input.State),
 	)
+
+	if len(input.State) > 0 {
+		authUri = fmt.Sprintf("%s&state=%s",
+			authUri,
+			url.QueryEscape(input.State),
+		)
+	}
 
 	return &sdk.GenerateAuthURIOutput{
 		AuthURI: authUri,

@@ -49,7 +49,7 @@ func (s *CampaignService) getFilter(input *sdk.CampaignGetInput) []model.Filteri
 		TFiltering = append(TFiltering, model.FilteringStruct{
 			Field:    "campaign_name",
 			Operator: "CONTAINS",
-			Values:   &mFiltering.CampaignName,
+			Values:   &[]string{mFiltering.CampaignName},
 		})
 	}
 
@@ -131,13 +131,12 @@ func (s *CampaignService) copyCampaignInfoToOutput(campaignData *model.Campaigns
 			ConfiguredStatus:   sdk.CampaignStatus(camInfo.ConfiguredStatus),
 			CampaignType:       sdk.CampaignTypeAMS(camInfo.CampaignType),
 			PromotedObjectType: sdk.LandingType(camInfo.PromotedObjectType),
-			DailyBudget:        camInfo.DailyBudget,
+			DailyBudget:        float32(camInfo.DailyBudget),
 			BudgetReachDate:    camInfo.BudgetReachDate,
 			CreatedTime:        time.Unix(camInfo.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			LastModifiedTime:   time.Unix(camInfo.LastModifiedTime, 0).Format("2006-01-02 15:04:05"),
 			SpeedMode:          sdk.SpeedModeAMS(camInfo.SpeedMode),
-			IsDeleted:          camInfo.IsDeleted,
-			IsAutoReplenish:    camInfo.IsAutoReplenish,
+			IsDeleted:          *camInfo.IsDeleted,
 		})
 	}
 	campaignOutput.List = rList

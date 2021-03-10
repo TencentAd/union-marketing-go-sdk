@@ -53,11 +53,17 @@ func (s *AuthService) GenerateAuthURI(input *sdk.GenerateAuthURIInput) (*sdk.Gen
 	if authConf == nil {
 		return nil, fmt.Errorf("auth no ams config")
 	}
-	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s&state=%s",
+	authUri := fmt.Sprintf("https://developers.e.qq.com/oauth/authorize?client_id=%d&redirect_uri=%s",
 		s.config.Auth.ClientID,
 		url.QueryEscape(authConf.RedirectUri),
-		url.QueryEscape(input.State),
 	)
+
+	if len(input.State) > 0 {
+		authUri = fmt.Sprintf("%s&state=%s",
+			authUri,
+			url.QueryEscape(input.State),
+		)
+	}
 
 	return &sdk.GenerateAuthURIOutput{
 		AuthURI: authUri,
@@ -78,9 +84,6 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 	}
 
 	state, err := s.getState(input.AuthCallback)
-	if err != nil {
-		return nil, err
-	}
 
 	amsResp, _, err := s.amsSDKClient.Oauth().Token(
 		context.Background(), authConf.ClientID, authConf.ClientSecret, "authorization_code",

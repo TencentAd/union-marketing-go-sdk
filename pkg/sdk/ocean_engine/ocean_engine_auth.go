@@ -258,6 +258,7 @@ func (s *AuthService) ProcessAuthCallback(input *sdk.ProcessAuthCallbackInput) (
 			AccessTokenExpireAt:  calcExpireAt(authResponse.Data.ExpiresIn),
 			RefreshToken:         authResponse.Data.RefreshToken,
 			RefreshTokenExpireAt: calcExpireAt(authResponse.Data.RefreshTokenExpiresIn),
+			Platform:             sdk.OceanEngine,
 		}
 		if err = account.Insert(authAccount); err != nil {
 			return nil, err

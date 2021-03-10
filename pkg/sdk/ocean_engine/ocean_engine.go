@@ -14,6 +14,10 @@ type OceanEngineService struct {
 	*MaterialService // 物料管理模块
 }
 
+func (s *OceanEngineService) GetAdGroupList(input *sdk.AdGroupGetInput) (*sdk.AdGroupGetOutput, error) {
+	panic("implement me")
+}
+
 // Name 名称
 func (s *OceanEngineService) Name() sdk.MarketingPlatformType {
 	return sdk.OceanEngine

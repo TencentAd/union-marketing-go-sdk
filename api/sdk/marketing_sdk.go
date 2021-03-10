@@ -6,9 +6,11 @@ import sdkconfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/co
 type MarketingSDK interface {
 	GetConfig() *sdkconfig.Config
 	Auth // 授权接口
-	//ADDelivery
+	ADDelivery
 	Account
 	Report
+	Material
+	CampaignOperation // 广告计划接口
 }
 
 // ADDelivery 广告投放接口
@@ -25,10 +27,12 @@ type BudgetOperation interface {
 
 // CampaignOperation 推广计划相关接口
 type CampaignOperation interface {
+	GetCampaignList(input *CampaignGetInput) (*CampaignGetOutput, error)
 }
 
 // ADGroupOperation 广告组相关接口
 type ADGroupOperation interface {
+	GetAdGroupList(input *AdGroupGetInput) (*AdGroupGetOutput, error)
 }
 
 // CreativeOperation 创意相关接口
@@ -42,17 +46,17 @@ type Account interface {
 
 // Material 物料管理接口
 type Material interface {
-	AddImage()
-	GetImage()
-	AddVideo()
-	GetVideo()
-	BindMaterial()
+	AddImage(input *ImageAddInput) (*ImagesAddOutput, error)
+	GetImage(input *MaterialGetInput) (*ImageGetOutput, error)
+	AddVideo(input *VideoAddInput) (*VideoAddOutput, error)
+	GetVideo(input *MaterialGetInput) (*VideoGetOutput, error)
+	BindMaterial(input *MaterialBindInput) (*MaterialBindOutput, error)
 }
 
 // Report 报表相关接口
 type Report interface {
 	// GetReport 获取报表
-	GetReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetVideoReport(reportInput *GetReportInput) (*GetReportOutput, error)
-	GetImageReport(reportInput *GetReportInput) (*GetReportOutput, error)
+	GetReport(input *GetReportInput) (*GetReportOutput, error)
+	GetVideoReport(input *GetReportInput) (*GetReportOutput, error)
+	GetImageReport(input *GetReportInput) (*GetReportOutput, error)
 }

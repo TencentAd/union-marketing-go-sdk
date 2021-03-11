@@ -57,13 +57,13 @@ type MaterialGetInput struct {
 
 // MaterialFiltering 获取物料过滤参数结构
 type MaterialFiltering struct {
-	Ids              []string `json:"ids,omitempty"`                // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
-	MaterialIds      []string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
-	Signatures       []string `json:"signatures,omitempty"`         // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
-	Width            int64    `json:"width,omitempty"`              // 图片宽度
-	Height           int64    `json:"height,omitempty"`             // 图片高度
-	CreatedStartTime string   `json:"created_start_time,omitempty"` // 根据视频上传时间进行过滤的起始时间，与end_time搭配使用，格式：yyyy-mm-dd
-	CreatedEndTime   string   `json:"created_end_time,omitempty"`   // 根据视频上传时间进行过滤的截止时间，与start_time搭配使用，格式：yyyy-mm-dd
+	Ids                    []string `json:"ids,omitempty"`                // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
+	MaterialIdsOceanEngine []string `json:"material_ids,omitempty"`       // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤,头条使用
+	Signatures             []string `json:"signatures,omitempty"`         // 图片ids 数量限制：<=100  注意：image_ids、material_ids、signatures只能选择一个进行过滤
+	Width                  int64    `json:"width,omitempty"`              // 图片宽度
+	Height                 int64    `json:"height,omitempty"`             // 图片高度
+	CreatedStartTime       string   `json:"created_start_time,omitempty"` // 根据视频上传时间进行过滤的起始时间，与end_time搭配使用，格式：yyyy-mm-dd
+	CreatedEndTime         string   `json:"created_end_time,omitempty"`   // 根据视频上传时间进行过滤的截止时间，与start_time搭配使用，格式：yyyy-mm-dd
 }
 
 // ImageGetOutput 获取图片结构

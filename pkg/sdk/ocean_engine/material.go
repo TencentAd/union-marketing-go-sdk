@@ -211,8 +211,8 @@ func (s *MaterialService) getFilter(input *sdk.MaterialGetInput) (string, error)
 		}
 	}
 
-	if len(input.Filtering.MaterialIds) > 0 {
-		materialIDList := input.Filtering.MaterialIds
+	if len(input.Filtering.MaterialIdsOceanEngine) > 0 {
+		materialIDList := input.Filtering.MaterialIdsOceanEngine
 		for i := 0; i < len(materialIDList); i++ {
 			mID, err := strconv.ParseInt(materialIDList[i], 10, 64)
 			if err != nil {

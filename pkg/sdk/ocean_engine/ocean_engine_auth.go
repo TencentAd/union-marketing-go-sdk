@@ -313,6 +313,7 @@ func (s *AuthService) RefreshToken(acc *sdk.AuthAccount) (*sdk.RefreshTokenOutpu
 		AccessTokenExpireAt:  calcExpireAt(authResponse.Data.ExpiresIn),
 		RefreshToken:         authResponse.Data.RefreshToken,
 		RefreshTokenExpireAt: calcExpireAt(authResponse.Data.RefreshTokenExpiresIn),
+		Platform:             sdk.OceanEngine,
 	}, nil
 }
 

@@ -78,14 +78,25 @@ func (s *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) [
 	// Filtering
 	var TFiltering []model.FilteringStruct
 	mFiltering := input.Filtering
+
 	// image_id
-	if mFiltering.MaterialIds != nil {
+	if len(input.Filtering.Ids) > 0 {
 		TFiltering = append(TFiltering, model.FilteringStruct{
 			Field:    preStr + "id",
 			Operator: "IN",
-			Values:   &mFiltering.MaterialIds,
+			Values:   &mFiltering.Ids,
 		})
 	}
+
+	// signatures
+	if len(input.Filtering.Signatures) > 0 {
+		TFiltering = append(TFiltering, model.FilteringStruct{
+			Field:    preStr + "signature",
+			Operator: "IN",
+			Values:   &mFiltering.Signatures,
+		})
+	}
+
 	// Width
 	if mFiltering.Width > 0 {
 		TFiltering = append(TFiltering, model.FilteringStruct{

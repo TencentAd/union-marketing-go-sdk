@@ -83,7 +83,7 @@ func serveCall(pattern string) {
 
 		fmt.Println("method:", method)
 		fmt.Println("input:", input)
-		fmt.Println("platform:", input)
+		fmt.Println("platform:", platform)
 
 		response, err := manager.Call(sdk.MarketingPlatformType(platform), method, input)
 		if err != nil {

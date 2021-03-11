@@ -30,7 +30,7 @@ func (s *AdGroupService) getFilter(input *sdk.AdGroupGetInput) []model.Filtering
 	if input.Filtering == nil {
 		return nil
 	}
-	TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
+	var TFiltering []model.FilteringStruct
 	// campaign_id
 	mFiltering := input.Filtering
 	if len(mFiltering.AdGroupIDList) > 0 {

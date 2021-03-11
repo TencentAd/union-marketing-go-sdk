@@ -66,8 +66,6 @@ func (s *MaterialService) AddImage(input *sdk.ImageAddInput) (*sdk.ImagesAddOutp
 	return output, err
 }
 
-var TMaterialFilterMax = 4
-
 // getFilter 获取过滤信息
 func (s *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) []model.FilteringStruct {
 	if input.Filtering == nil {
@@ -78,7 +76,7 @@ func (s *MaterialService) getFilter(input *sdk.MaterialGetInput, isImage bool) [
 		preStr = "media_"
 	}
 	// Filtering
-	TFiltering := make([]model.FilteringStruct, TMaterialFilterMax)
+	var TFiltering []model.FilteringStruct
 	mFiltering := input.Filtering
 	// image_id
 	if mFiltering.MaterialIds != nil {
@@ -139,11 +137,11 @@ func (s *MaterialService) GetImage(input *sdk.MaterialGetInput) (*sdk.ImageGetOu
 	if tFilter := s.getFilter(input, true); tFilter != nil && len(tFilter) > 0 {
 		imagesGetOpts.Filtering = optional.NewInterface(tFilter)
 	}
-	accountid, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
+	accID, err := strconv.ParseInt(input.BaseInput.AccountId, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	response, _, err := tClient.Images().Get(*tClient.Ctx, accountid, imagesGetOpts)
+	response, _, err := tClient.Images().Get(*tClient.Ctx, accID, imagesGetOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -297,6 +295,6 @@ func (s *MaterialService) AddVideo(input *sdk.VideoAddInput) (*sdk.VideoAddOutpu
 	return output, err
 }
 
-func (t *MaterialService) BindMaterial(input *sdk.MaterialBindInput) (*sdk.MaterialBindOutput, error) {
+func (s *MaterialService) BindMaterial(input *sdk.MaterialBindInput) (*sdk.MaterialBindOutput, error) {
 	panic("implement me")
 }

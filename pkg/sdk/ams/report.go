@@ -103,7 +103,7 @@ func (t *ReportService) getReportFilter(reportInput *sdk.GetReportInput) []model
 	if reportInput.Filtering == nil {
 		return nil
 	}
-	TFiltering := make([]model.FilteringStruct, 0, TFilterMax)
+	var TFiltering []model.FilteringStruct
 	// campaign_id
 	mFiltering := reportInput.Filtering
 	if len(mFiltering.CampaignIDList) > 0 {

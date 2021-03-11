@@ -8,7 +8,7 @@ import (
 // AuthAccountUpsert 插入或者更新授权的账号信息
 func AuthAccountUpsert(db *gorm.DB, authAccount *sdk.AuthAccount) error {
 	var count int64
-	if  err := db.Model(authAccount).Where("account_id = ?", authAccount.AccountID).Count(&count).Error; err != nil {
+	if  err := db.Model(authAccount).Where("id = ?", authAccount.ID).Count(&count).Error; err != nil {
 		return err
 	}
 

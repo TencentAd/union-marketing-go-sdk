@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
-	config "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/account"
+	config "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/config"
 	"github.com/antihax/optional"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/api"
 	"github.com/tencentad/marketing-api-go-sdk/pkg/model"

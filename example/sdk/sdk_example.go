@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/httpx"
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/manager"
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/config"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/define"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/account/mysql"
-	sdkConfig "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/orm"
 	log "github.com/sirupsen/logrus"
+	"github.com/tencentad/union-marketing-go-sdk/api/httpx"
+	"github.com/tencentad/union-marketing-go-sdk/api/manager"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/config"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/define"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/account"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/account/mysql"
+	sdkConfig "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/config"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/orm"
 )
 
 // Config 配置

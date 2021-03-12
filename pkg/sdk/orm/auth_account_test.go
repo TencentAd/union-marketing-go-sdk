@@ -3,7 +3,7 @@ package orm
 import (
 	"testing"
 
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
 	"github.com/stretchr/testify/assert"
 )
 

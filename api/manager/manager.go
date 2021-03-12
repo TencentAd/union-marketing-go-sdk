@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"reflect"
 
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ams"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/ocean_engine"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/ams"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/config"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/ocean_engine"
 )
 
 var (

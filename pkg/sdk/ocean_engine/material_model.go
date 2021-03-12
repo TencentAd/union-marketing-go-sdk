@@ -1,6 +1,6 @@
 package ocean_engine
 
-import "git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+import "github.com/tencentad/union-marketing-go-sdk/api/sdk"
 
 type AddImageData struct {
 	Code      int           `json:"code"`

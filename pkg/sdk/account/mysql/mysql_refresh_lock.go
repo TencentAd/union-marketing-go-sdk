@@ -1,6 +1,6 @@
 package mysql
 
-import "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/orm"
+import "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/orm"
 
 type RefreshLock struct {
 

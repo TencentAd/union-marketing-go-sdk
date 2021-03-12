@@ -1,6 +1,6 @@
 package config
 
-import "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/http_tools"
+import "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/http_tools"
 
 // Config SDK配置
 type Config struct {

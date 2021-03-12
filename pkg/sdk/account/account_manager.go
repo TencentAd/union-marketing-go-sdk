@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,4 +1,4 @@
-module git.code.oa.com/tme-server-component/kg_growth_open
+module github.com/tencentad/union-marketing-go-sdk
 
 go 1.15
 

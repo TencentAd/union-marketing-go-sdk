@@ -1,8 +1,8 @@
 package ams
 
 import (
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	config "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
+	config "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/config"
 )
 
 // AMService AMS处理服务

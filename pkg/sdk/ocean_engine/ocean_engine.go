@@ -1,9 +1,9 @@
 package ocean_engine
 
 import (
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
-	config "git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/config"
-	"git.code.oa.com/tme-server-component/kg_growth_open/pkg/sdk/http_tools"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
+	config "github.com/tencentad/union-marketing-go-sdk/pkg/sdk/config"
+	"github.com/tencentad/union-marketing-go-sdk/pkg/sdk/http_tools"
 )
 
 type OceanEngineService struct {

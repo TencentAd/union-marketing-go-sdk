@@ -1,7 +1,7 @@
 package account
 
 import (
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
 )
 
 // Storage 账号存储接口

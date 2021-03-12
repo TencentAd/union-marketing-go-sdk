@@ -1,14 +1,14 @@
 package orm
 
 import (
-	"git.code.oa.com/tme-server-component/kg_growth_open/api/sdk"
+	"github.com/tencentad/union-marketing-go-sdk/api/sdk"
 	"gorm.io/gorm"
 )
 
 // AuthAccountUpsert 插入或者更新授权的账号信息
 func AuthAccountUpsert(db *gorm.DB, authAccount *sdk.AuthAccount) error {
 	var count int64
-	if  err := db.Model(authAccount).Where("id = ?", authAccount.ID).Count(&count).Error; err != nil {
+	if err := db.Model(authAccount).Where("id = ?", authAccount.ID).Count(&count).Error; err != nil {
 		return err
 	}
 
